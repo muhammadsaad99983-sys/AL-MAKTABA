@@ -1,7 +1,7 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'common.dart';
 import 'native.dart';
+import 'ui_book.dart' show safePdfName;
 import 'state.dart';
 
 class ReaderScreen extends StatefulWidget {
@@ -23,7 +23,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   bool zoomed = false;
   double? drag;
   PageController? ctl;
-  final Map<int, Uint8List> cache = <int, Uint8List>{};
+  final Map<int, RenderedPage> cache = <int, RenderedPage>{};
 
   @override
   void initState() {
@@ -75,6 +75,14 @@ class _ReaderScreenState extends State<ReaderScreen> {
       zoomed = false;
       ctl = PageController(initialPage: page);
     });
+  }
+
+  Future<void> _openExternal() async {
+    try {
+      await Native.viewPdf(widget.path, safePdfName(widget.title));
+    } catch (_) {
+      if (mounted) snack(context, 'دوسری ایپ میں نہیں کھل سکی۔ "Downloads میں محفوظ کریں" استعمال کریں۔');
+    }
   }
 
   Future<void> _askPage() async {
@@ -143,6 +151,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
       appBar: appBar(
         widget.title,
         actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.open_in_new),
+            tooltip: 'دوسری PDF ایپ میں کھولیں',
+            onPressed: _openExternal,
+          ),
           if (!loading && error == null)
             IconButton(
               icon: Icon(vertical ? Icons.swap_horiz : Icons.swap_vert),
@@ -192,7 +205,7 @@ class _PdfPage extends StatefulWidget {
   final String path;
   final int index;
   final int width;
-  final Map<int, Uint8List> cache;
+  final Map<int, RenderedPage> cache;
   final ValueChanged<bool> onZoom;
 
   const _PdfPage({
@@ -209,7 +222,7 @@ class _PdfPage extends StatefulWidget {
 }
 
 class _PdfPageState extends State<_PdfPage> {
-  Uint8List? bytes;
+  RenderedPage? page;
   String? err;
   bool zoomed = false;
   Offset tapPos = Offset.zero;
@@ -219,20 +232,20 @@ class _PdfPageState extends State<_PdfPage> {
   void initState() {
     super.initState();
     tc.addListener(_onTransform);
-    bytes = widget.cache[widget.index];
-    if (bytes == null) _load();
+    page = widget.cache[widget.index];
+    if (page == null) _load();
   }
 
   Future<void> _load() async {
     try {
-      final Uint8List r = await Native.pdfRender(widget.path, widget.index, widget.width);
+      final RenderedPage r = await Native.pdfRender(widget.path, widget.index, widget.width);
       widget.cache[widget.index] = r;
       while (widget.cache.length > 8) {
         widget.cache.remove(widget.cache.keys.first);
       }
-      if (mounted) setState(() => bytes = r);
-    } catch (_) {
-      if (mounted) setState(() => err = 'یہ صفحہ نہیں کھل سکا');
+      if (mounted) setState(() => page = r);
+    } catch (e) {
+      if (mounted) setState(() => err = 'یہ صفحہ نہیں کھل سکا\n$e');
     }
   }
 
@@ -263,8 +276,8 @@ class _PdfPageState extends State<_PdfPage> {
 
   @override
   Widget build(BuildContext context) {
-    final Uint8List? b = bytes;
-    if (b == null) {
+    final RenderedPage? pg = page;
+    if (pg == null) {
       return Center(
         child: err != null
             ? Text(err!, style: const TextStyle(color: Colors.black54))
@@ -279,8 +292,30 @@ class _PdfPageState extends State<_PdfPage> {
         minScale: 1,
         maxScale: 4,
         panEnabled: zoomed,
-        child: Center(
-          child: Image.memory(b, fit: BoxFit.contain, gaplessPlayback: true),
+        child: Stack(
+          alignment: Alignment.center,
+          children: <Widget>[
+            Center(
+              child: Image.memory(
+                pg.bytes,
+                fit: BoxFit.contain,
+                gaplessPlayback: true,
+                errorBuilder: (BuildContext c, Object e, StackTrace? st) =>
+                    const Text('تصویر دکھانے میں خرابی', style: TextStyle(color: Colors.red)),
+              ),
+            ),
+            if (pg.blank)
+              const Positioned(
+                bottom: 14,
+                left: 16,
+                right: 16,
+                child: Text(
+                  'یہ صفحہ خالی بنا ہے۔ اوپر دائیں "دوسری PDF ایپ میں کھولیں" کا بٹن دبائیں۔',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.black54, height: 1.7),
+                ),
+              ),
+          ],
         ),
       ),
     );

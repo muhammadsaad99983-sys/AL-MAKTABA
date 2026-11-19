@@ -8,6 +8,12 @@ class PickedPdf {
   PickedPdf(this.path, this.name, this.size);
 }
 
+class RenderedPage {
+  final Uint8List bytes;
+  final bool blank;
+  RenderedPage(this.bytes, this.blank);
+}
+
 /// Thin wrapper around the Kotlin code in MainActivity.kt.
 /// It gives us: private folder, PDF picker, PDF page renderer,
 /// save to Downloads, share and open link - without any plugin.
@@ -32,7 +38,7 @@ class Native {
     return r ?? <dynamic>[0, 0, 0];
   }
 
-  static Future<Uint8List> pdfRender(String path, int page, int width) async {
+  static Future<RenderedPage> pdfRender(String path, int page, int width) async {
     final Map<dynamic, dynamic>? r = await _ch.invokeMethod<Map<dynamic, dynamic>>(
       'pdfRender',
       <String, dynamic>{'path': path, 'page': page, 'width': width},
@@ -40,7 +46,12 @@ class Native {
     if (r == null || r['bytes'] == null) {
       throw Exception('render failed');
     }
-    return r['bytes'] as Uint8List;
+    return RenderedPage(r['bytes'] as Uint8List, r['blank'] == true);
+  }
+
+  /// Opens the book in another PDF app installed on the phone.
+  static Future<void> viewPdf(String path, String name) async {
+    await _ch.invokeMethod<bool>('viewPdf', <String, dynamic>{'path': path, 'name': name});
   }
 
   static Future<void> pdfClose() async {

@@ -57,6 +57,15 @@ class MainActivity : FlutterActivity() {
                     pdfRender(path, page, width, result)
                 }
             }
+            "viewPdf" -> {
+                val path = call.argument<String>("path")
+                val name = call.argument<String>("name")
+                if (path == null || name == null) {
+                    result.error("args", "arguments missing", null)
+                } else {
+                    viewPdf(path, name, result)
+                }
+            }
             "pdfClose" -> {
                 worker.execute { closeRenderer() }
                 result.success(true)
@@ -221,6 +230,28 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun looksBlank(bmp: Bitmap): Boolean {
+        val w = bmp.width
+        val h = bmp.height
+        val stepX = if (w / 150 < 1) 1 else w / 150
+        val stepY = if (h / 220 < 1) 1 else h / 220
+        var found = 0
+        var y = 0
+        while (y < h) {
+            var x = 0
+            while (x < w) {
+                val c = bmp.getPixel(x, y)
+                if ((c and 0x00FFFFFF) != 0x00FFFFFF) {
+                    found++
+                    if (found >= 3) return false
+                }
+                x += stepX
+            }
+            y += stepY
+        }
+        return true
+    }
+
     private fun pdfRender(path: String, index: Int, width: Int, result: MethodChannel.Result) {
         worker.execute {
             try {
@@ -230,22 +261,75 @@ class MainActivity : FlutterActivity() {
                     throw Exception("page out of range")
                 }
                 val page = r.openPage(index)
+                var blank = false
+                var bytes = ByteArray(0)
                 val w = if (width < 200) 200 else width
-                val h = (w.toLong() * page.height.toLong() / page.width.toLong()).toInt()
-                val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-                bmp.eraseColor(Color.WHITE)
-                page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-                page.close()
-                val out = ByteArrayOutputStream()
-                bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
-                bmp.recycle()
+                var h = 0
+                try {
+                    h = (w.toLong() * page.height.toLong() / page.width.toLong()).toInt()
+                    if (h < 1) h = 1
+                    val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                    bmp.eraseColor(Color.WHITE)
+                    page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                    if (looksBlank(bmp)) {
+                        bmp.eraseColor(Color.WHITE)
+                        page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
+                        blank = looksBlank(bmp)
+                    }
+                    val out = ByteArrayOutputStream()
+                    bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
+                    bmp.recycle()
+                    bytes = out.toByteArray()
+                } finally {
+                    page.close()
+                }
                 val map = HashMap<String, Any>()
-                map["bytes"] = out.toByteArray()
+                map["bytes"] = bytes
                 map["w"] = w
                 map["h"] = h
+                map["blank"] = blank
                 ui.post { result.success(map) }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 ui.post { result.error("render", e.message ?: "render failed", null) }
+            }
+        }
+    }
+
+    // ------------------------------------------------------------
+    //  Open the PDF in another PDF viewer app on the phone
+    // ------------------------------------------------------------
+
+    private fun viewPdf(path: String, name: String, result: MethodChannel.Result) {
+        worker.execute {
+            try {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    throw Exception("needs Android 10 or newer")
+                }
+                val src = File(path)
+                val values = ContentValues()
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+                values.put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                    ?: throw Exception("cannot create the file")
+                val out = contentResolver.openOutputStream(uri)
+                    ?: throw Exception("cannot write the file")
+                out.use { o ->
+                    src.inputStream().use { input -> input.copyTo(o) }
+                }
+                ui.post {
+                    try {
+                        val view = Intent(Intent.ACTION_VIEW)
+                        view.setDataAndType(uri, "application/pdf")
+                        view.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        startActivity(Intent.createChooser(view, name))
+                        result.success(true)
+                    } catch (e: Exception) {
+                        result.error("view", e.message ?: "no viewer", null)
+                    }
+                }
+            } catch (e: Exception) {
+                ui.post { result.error("view", e.message ?: "view failed", null) }
             }
         }
     }
