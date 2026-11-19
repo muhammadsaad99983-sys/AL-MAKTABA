@@ -1,0 +1,290 @@
+import android.app.Activity
+import android.content.ContentValues
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.pdf.PdfRenderer
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.os.Handler
+import android.os.Looper
+import android.os.ParcelFileDescriptor
+import android.provider.MediaStore
+import android.provider.OpenableColumns
+import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodCall
+import io.flutter.plugin.common.MethodChannel
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.util.concurrent.Executors
+
+class MainActivity : FlutterActivity() {
+    private val channelName = "aftabia/native"
+    private val pickCode = 4711
+    private var pendingPick: MethodChannel.Result? = null
+    private val worker = Executors.newSingleThreadExecutor()
+    private val ui = Handler(Looper.getMainLooper())
+
+    // These three are only touched from the worker thread.
+    private var renderer: PdfRenderer? = null
+    private var descriptor: ParcelFileDescriptor? = null
+    private var openPath: String? = null
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
+            .setMethodCallHandler { call, result -> handle(call, result) }
+    }
+
+    private fun handle(call: MethodCall, result: MethodChannel.Result) {
+        when (call.method) {
+            "dir" -> result.success(filesDir.absolutePath)
+            "pickPdf" -> pickPdf(result)
+            "pdfOpen" -> {
+                val path = call.argument<String>("path")
+                if (path == null) result.error("args", "path missing", null) else pdfOpen(path, result)
+            }
+            "pdfRender" -> {
+                val path = call.argument<String>("path")
+                val page = call.argument<Int>("page")
+                val width = call.argument<Int>("width")
+                if (path == null || page == null || width == null) {
+                    result.error("args", "arguments missing", null)
+                } else {
+                    pdfRender(path, page, width, result)
+                }
+            }
+            "pdfClose" -> {
+                worker.execute { closeRenderer() }
+                result.success(true)
+            }
+            "saveToDownloads" -> {
+                val path = call.argument<String>("path")
+                val name = call.argument<String>("name")
+                if (path == null || name == null) {
+                    result.error("args", "arguments missing", null)
+                } else {
+                    saveToDownloads(path, name, result)
+                }
+            }
+            "shareText" -> {
+                try {
+                    val text = call.argument<String>("text") ?: ""
+                    val title = call.argument<String>("title") ?: ""
+                    val send = Intent(Intent.ACTION_SEND)
+                    send.type = "text/plain"
+                    send.putExtra(Intent.EXTRA_TEXT, text)
+                    startActivity(Intent.createChooser(send, title))
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.error("share", e.message ?: "share failed", null)
+                }
+            }
+            "openUrl" -> {
+                try {
+                    val url = call.argument<String>("url") ?: ""
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.error("url", e.message ?: "open failed", null)
+                }
+            }
+            else -> result.notImplemented()
+        }
+    }
+
+    // ------------------------------------------------------------
+    //  PDF picker (system file chooser)
+    // ------------------------------------------------------------
+
+    private fun pickPdf(result: MethodChannel.Result) {
+        if (pendingPick != null) {
+            result.error("busy", "picker already open", null)
+            return
+        }
+        pendingPick = result
+        try {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+            intent.addCategory(Intent.CATEGORY_OPENABLE)
+            intent.type = "application/pdf"
+            startActivityForResult(intent, pickCode)
+        } catch (e: Exception) {
+            pendingPick = null
+            result.error("pick", e.message ?: "cannot open picker", null)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode != pickCode) {
+            super.onActivityResult(requestCode, resultCode, data)
+            return
+        }
+        val r = pendingPick ?: return
+        pendingPick = null
+        val uri = data?.data
+        if (resultCode != Activity.RESULT_OK || uri == null) {
+            r.success(null)
+            return
+        }
+        worker.execute {
+            try {
+                var name = "book.pdf"
+                val cursor = contentResolver.query(uri, null, null, null, null)
+                if (cursor != null) {
+                    try {
+                        val i = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                        if (i >= 0 && cursor.moveToFirst()) {
+                            val n = cursor.getString(i)
+                            if (n != null) name = n
+                        }
+                    } finally {
+                        cursor.close()
+                    }
+                }
+                val dest = File(cacheDir, "pick_" + System.currentTimeMillis() + ".pdf")
+                val input = contentResolver.openInputStream(uri)
+                    ?: throw Exception("cannot read the selected file")
+                input.use { src ->
+                    FileOutputStream(dest).use { out -> src.copyTo(out) }
+                }
+                val map = HashMap<String, Any>()
+                map["path"] = dest.absolutePath
+                map["name"] = name
+                map["size"] = dest.length()
+                ui.post { r.success(map) }
+            } catch (e: Exception) {
+                ui.post { r.error("pick", e.message ?: "pick failed", null) }
+            }
+        }
+    }
+
+    // ------------------------------------------------------------
+    //  PDF rendering with the built-in Android PdfRenderer
+    // ------------------------------------------------------------
+
+    private fun closeRenderer() {
+        try {
+            renderer?.close()
+        } catch (e: Exception) {
+        }
+        try {
+            descriptor?.close()
+        } catch (e: Exception) {
+        }
+        renderer = null
+        descriptor = null
+        openPath = null
+    }
+
+    private fun ensureOpen(path: String) {
+        if (renderer != null && openPath == path) return
+        closeRenderer()
+        var fd: ParcelFileDescriptor? = null
+        try {
+            fd = ParcelFileDescriptor.open(File(path), ParcelFileDescriptor.MODE_READ_ONLY)
+            val r = PdfRenderer(fd)
+            descriptor = fd
+            renderer = r
+            openPath = path
+        } catch (e: Exception) {
+            try {
+                fd?.close()
+            } catch (e2: Exception) {
+            }
+            throw e
+        }
+    }
+
+    private fun pdfOpen(path: String, result: MethodChannel.Result) {
+        worker.execute {
+            try {
+                ensureOpen(path)
+                val r = renderer!!
+                val info = ArrayList<Int>()
+                info.add(r.pageCount)
+                if (r.pageCount > 0) {
+                    val p = r.openPage(0)
+                    info.add(p.width)
+                    info.add(p.height)
+                    p.close()
+                } else {
+                    info.add(0)
+                    info.add(0)
+                }
+                ui.post { result.success(info) }
+            } catch (e: Exception) {
+                ui.post { result.error("open", e.message ?: "open failed", null) }
+            }
+        }
+    }
+
+    private fun pdfRender(path: String, index: Int, width: Int, result: MethodChannel.Result) {
+        worker.execute {
+            try {
+                ensureOpen(path)
+                val r = renderer!!
+                if (index < 0 || index >= r.pageCount) {
+                    throw Exception("page out of range")
+                }
+                val page = r.openPage(index)
+                val w = if (width < 200) 200 else width
+                val h = (w.toLong() * page.height.toLong() / page.width.toLong()).toInt()
+                val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                bmp.eraseColor(Color.WHITE)
+                page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                page.close()
+                val out = ByteArrayOutputStream()
+                bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
+                bmp.recycle()
+                val map = HashMap<String, Any>()
+                map["bytes"] = out.toByteArray()
+                map["w"] = w
+                map["h"] = h
+                ui.post { result.success(map) }
+            } catch (e: Exception) {
+                ui.post { result.error("render", e.message ?: "render failed", null) }
+            }
+        }
+    }
+
+    // ------------------------------------------------------------
+    //  Save a copy into the phone's Downloads folder
+    // ------------------------------------------------------------
+
+    private fun saveToDownloads(path: String, name: String, result: MethodChannel.Result) {
+        worker.execute {
+            try {
+                val src = File(path)
+                val shown: String
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val values = ContentValues()
+                    values.put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+                    values.put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
+                    values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                    val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                        ?: throw Exception("cannot create the file")
+                    val out = contentResolver.openOutputStream(uri)
+                        ?: throw Exception("cannot write the file")
+                    out.use { o ->
+                        src.inputStream().use { input -> input.copyTo(o) }
+                    }
+                    shown = "Downloads/" + name
+                } else {
+                    val dir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: filesDir
+                    dir.mkdirs()
+                    val dest = File(dir, name)
+                    src.inputStream().use { input ->
+                        FileOutputStream(dest).use { o -> input.copyTo(o) }
+                    }
+                    shown = dest.absolutePath
+                }
+                ui.post { result.success(shown) }
+            } catch (e: Exception) {
+                ui.post { result.error("save", e.message ?: "save failed", null) }
+            }
+        }
+    }
+}
