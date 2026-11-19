@@ -1,17 +1,8 @@
-/// ============================================================
-///  ONLY THIS FILE NEEDS YOUR OWN VALUES.
-///  Replace the two lines marked (1) and (2) with the values
-///  from your Supabase project (Project Settings -> API).
-///  Keep the single quotes. Do not add spaces inside them.
-/// ============================================================
 class Config {
-  // (1) Project URL, looks like: https://abcdefgh.supabase.co
-  static const String supabaseUrl = 'YOUR_SUPABASE_URL';
+  static const String supabaseUrl = 'https://hjjvtzlyzmclfgtxivkp.supabase.co';
 
-  // (2) The "anon" / "publishable" key (a long text)
-  static const String supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+  static const String supabaseKey = 'sb_publishable_hvsuIBI_Ej86mZQX7325bg_iZOb-rvx';
 
-  // Name of the storage bucket created by SUPABASE_SETUP.sql
   static const String bucket = 'books';
 
   // Shown on the About screen. Write your phone / WhatsApp / email.
