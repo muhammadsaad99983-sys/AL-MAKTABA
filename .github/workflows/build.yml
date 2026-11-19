@@ -37,6 +37,7 @@ jobs:
           for f in *.dart; do
             if [ -e "$f" ]; then mv "$f" lib/; fi
           done
+          sed -i 's/\bCategory\b/LibCategory/g' lib/*.dart
 
           RES=android/app/src/main/res
           rm -rf "$RES"/mipmap-anydpi*
