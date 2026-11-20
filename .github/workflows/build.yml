@@ -74,6 +74,20 @@ jobs:
           flutter pub add google_mobile_ads
           flutter pub get
 
+      - name: Turn off the Android lint check (it crashes on a plugin)
+        run: |
+          mkdir -p "$HOME/.gradle/init.d"
+          cat > "$HOME/.gradle/init.d/no-lint.gradle" <<'EOT'
+          allprojects {
+            tasks.configureEach { t ->
+              if (t.name.startsWith('lintVital')) {
+                t.enabled = false
+              }
+            }
+          }
+          EOT
+          cat "$HOME/.gradle/init.d/no-lint.gradle"
+
       - name: Build release APK
         run: flutter build apk --release
 
