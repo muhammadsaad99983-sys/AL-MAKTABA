@@ -9,6 +9,8 @@ permissions:
   contents: write
 
 env:
+  # Ads switch: 'true' = ads on, 'false' = ads off (no ad code at all).
+  ENABLE_ADS: 'false'
   # Google's official TEST AdMob App ID. Replace with your own App ID later.
   ADMOB_APP_ID: ca-app-pub-3940256099942544~3347511713
 
@@ -53,9 +55,29 @@ jobs:
           MANIFEST=android/app/src/main/AndroidManifest.xml
           sed -i 's/android:label="[^"]*"/android:label="المکتبۃ الآفتابیہ"/' "$MANIFEST"
           sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application#' "$MANIFEST"
-          sed -i "0,/<activity/s#<activity#<meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"$ADMOB_APP_ID\"/>\n        <activity#" "$MANIFEST"
           grep -q 'android.permission.INTERNET' "$MANIFEST" || { echo "ERROR: INTERNET permission was not added"; exit 1; }
-          grep -q 'com.google.android.gms.ads.APPLICATION_ID' "$MANIFEST" || { echo "ERROR: AdMob App ID was not added"; exit 1; }
+
+          if [ "$ENABLE_ADS" = "true" ]; then
+            sed -i "0,/<activity/s#<activity#<meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"$ADMOB_APP_ID\"/>\n        <activity#" "$MANIFEST"
+            grep -q 'com.google.android.gms.ads.APPLICATION_ID' "$MANIFEST" || { echo "ERROR: AdMob App ID was not added"; exit 1; }
+          else
+            echo "Ads are OFF: using an empty ads.dart"
+            cat > lib/ads.dart <<'EOT'
+          import 'package:flutter/material.dart';
+
+          class AdsConfig {
+            static const bool enabled = false;
+            static const String bannerUnitId = '';
+          }
+
+          class AdBanner extends StatelessWidget {
+            const AdBanner({super.key});
+
+            @override
+            Widget build(BuildContext context) => const SizedBox.shrink();
+          }
+          EOT
+          fi
 
           MA=$(find android/app/src/main -name MainActivity.kt | head -n 1)
           if [ -z "$MA" ]; then
@@ -71,7 +93,9 @@ jobs:
 
       - name: Get packages
         run: |
-          flutter pub add google_mobile_ads
+          if [ "$ENABLE_ADS" = "true" ]; then
+            flutter pub add google_mobile_ads
+          fi
           flutter pub get
 
       - name: Turn off the Android lint check (it crashes on a plugin)
@@ -97,7 +121,7 @@ jobs:
       - name: Save APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: maktaba-apk
+          name: maktaba_apk
           path: maktaba_aftabia.apk
 
       - name: Publish APK in Releases
