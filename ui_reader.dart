@@ -172,7 +172,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               child: SafeArea(
                 top: false,
-                child: Row(
+                child: SizedBox(
+                  height: 52,
+                  child: Row(
                   children: <Widget>[
                     TextButton(
                       onPressed: _askPage,
@@ -194,6 +196,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     else
                       const Spacer(),
                   ],
+                  ),
                 ),
               ),
             ),
