@@ -122,7 +122,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 class BookForm extends StatefulWidget {
   final Book? book;
   final String initialCategory;
-  const BookForm({super.key, this.book, this.initialCategory = ''});
+  final String initialLanguage;
+  const BookForm({super.key, this.book, this.initialCategory = '', this.initialLanguage = 'ur'});
 
   @override
   State<BookForm> createState() => _BookFormState();
@@ -133,6 +134,7 @@ class _BookFormState extends State<BookForm> {
   late final TextEditingController author;
   late final TextEditingController desc;
   String categoryId = '';
+  String language = 'ur';
   PickedPdf? picked;
   bool busy = false;
   double? progress;
@@ -148,6 +150,7 @@ class _BookFormState extends State<BookForm> {
     author = TextEditingController(text: b?.author ?? '');
     desc = TextEditingController(text: b?.description ?? '');
     categoryId = b?.categoryId ?? widget.initialCategory;
+    language = b?.language ?? widget.initialLanguage;
   }
 
   @override
@@ -200,7 +203,7 @@ class _BookFormState extends State<BookForm> {
     });
     try {
       if (editing) {
-        await lib.updateBook(widget.book!, t, author.text.trim(), desc.text.trim(), categoryId);
+        await lib.updateBook(widget.book!, t, author.text.trim(), desc.text.trim(), categoryId, language);
       } else {
         await lib.addBook(
           filePath: p!.path,
@@ -209,6 +212,7 @@ class _BookFormState extends State<BookForm> {
           author: author.text.trim(),
           description: desc.text.trim(),
           categoryId: categoryId,
+          language: language,
           onProgress: (int sent, int total) {
             if (mounted) setState(() => progress = total > 0 ? sent / total : null);
           },
@@ -283,6 +287,20 @@ class _BookFormState extends State<BookForm> {
                 alignLabelWithHint: true,
                 border: OutlineInputBorder(),
               ),
+            ),
+            const SizedBox(height: 16),
+            const Text('کتاب کی زبان', style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: kLanguages.entries
+                  .map((MapEntry<String, String> e) => ChoiceChip(
+                        label: Text(e.value),
+                        selected: language == e.key,
+                        onSelected: (bool _) => setState(() => language = e.key),
+                      ))
+                  .toList(),
             ),
             const SizedBox(height: 16),
             const Text('زمرہ', style: TextStyle(fontWeight: FontWeight.w600)),
@@ -553,7 +571,7 @@ class CategoriesScreen extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(12, 12, 12, 90),
                   itemCount: lib.categories.length,
                   itemBuilder: (BuildContext context, int i) {
-                    final Category c = lib.categories[i];
+                    final LibCategory c = lib.categories[i];
                     final int used = lib.booksIn(c.id).length + lib.postsIn(c.id).length;
                     return Card(
                       margin: const EdgeInsets.symmetric(vertical: 4),

@@ -19,6 +19,7 @@ class BooksTab extends StatefulWidget {
 }
 
 class _BooksTabState extends State<BooksTab> {
+  String lang = 'ur';
   String catId = '';
   String query = '';
 
@@ -29,23 +30,31 @@ class _BooksTabState extends State<BooksTab> {
       builder: (BuildContext context, Widget? _) {
         final List<String> tokens = tokensOf(query);
         final List<Book> list = lib.books.where((Book b) {
+          if (b.language != lang) return false;
           if (catId.isNotEmpty && b.categoryId != catId) return false;
           if (tokens.isEmpty) return true;
           return containsAll(normalizeText('${b.title} ${b.author} ${b.description}'), tokens);
         }).toList();
 
+        final List<MapEntry<String, String>> langItems = kLanguages.entries
+            .map((MapEntry<String, String> e) => MapEntry<String, String>(
+                  e.key,
+                  '${e.value} (${lib.books.where((Book b) => b.language == e.key).length})',
+                ))
+            .toList();
+
         final List<MapEntry<String, String>> filters = <MapEntry<String, String>>[
           const MapEntry<String, String>('', 'سب'),
-          ...lib.categories.map((Category c) => MapEntry<String, String>(c.id, c.name)),
+          ...lib.categories.map((LibCategory c) => MapEntry<String, String>(c.id, c.name)),
         ];
 
         return Scaffold(
-          appBar: appBar('کتابیں (${lib.books.length})'),
+          appBar: appBar('${languageLabel(lang)} کتابیں (${list.length})'),
           floatingActionButton: Api.isAdmin
               ? FloatingActionButton.extended(
                   onPressed: () => Navigator.push(
                     context,
-                    MaterialPageRoute<void>(builder: (BuildContext _) => BookForm(initialCategory: catId)),
+                    MaterialPageRoute<void>(builder: (BuildContext _) => BookForm(initialCategory: catId, initialLanguage: lang)),
                   ),
                   icon: const Icon(Icons.add),
                   label: const Text('کتاب شامل کریں'),
@@ -53,8 +62,10 @@ class _BooksTabState extends State<BooksTab> {
               : null,
           body: Column(
             children: <Widget>[
+              const SizedBox(height: 10),
+              ChipsRow(items: langItems, selected: lang, onSelected: (String l) => setState(() => lang = l)),
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
                 child: TextField(
                   onChanged: (String v) => setState(() => query = v),
                   decoration: InputDecoration(
@@ -82,7 +93,7 @@ class _BooksTabState extends State<BooksTab> {
                             const SizedBox(height: 60),
                             EmptyState(
                               Icons.menu_book_outlined,
-                              lib.books.isEmpty ? 'ابھی کوئی کتاب شامل نہیں کی گئی۔' : 'کوئی کتاب نہیں ملی۔',
+                              lib.books.isEmpty ? 'ابھی کوئی کتاب شامل نہیں کی گئی۔' : 'اس زبان میں ابھی کوئی کتاب نہیں۔',
                             ),
                           ],
                         )

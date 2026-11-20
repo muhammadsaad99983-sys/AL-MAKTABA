@@ -38,7 +38,7 @@ List<T> _mapList<T>(dynamic raw, T Function(Map<String, dynamic>) make) {
 }
 
 class Lib extends ChangeNotifier {
-  List<Category> categories = <Category>[];
+  List<LibCategory> categories = <LibCategory>[];
   List<Book> books = <Book>[];
   List<Post> posts = <Post>[];
 
@@ -59,7 +59,7 @@ class Lib extends ChangeNotifier {
   Future<void> init() async {
     await Api.restore();
     _booksDir = await Local.booksDir();
-    categories = _mapList<Category>(await Local.readJson('c_categories.json'), Category.fromJson);
+    categories = _mapList<LibCategory>(await Local.readJson('c_categories.json'), LibCategory.fromJson);
     books = _mapList<Book>(await Local.readJson('c_books.json'), Book.fromJson);
     posts = _mapList<Post>(await Local.readJson('c_posts.json'), Post.fromJson);
     final dynamic d = await Local.readJson('downloads.json');
@@ -98,11 +98,11 @@ class Lib extends ChangeNotifier {
         Api.getList('books'),
         Api.getList('posts'),
       ]);
-      categories = _mapList<Category>(r[0], Category.fromJson);
+      categories = _mapList<LibCategory>(r[0], LibCategory.fromJson);
       books = _mapList<Book>(r[1], Book.fromJson);
       posts = _mapList<Post>(r[2], Post.fromJson);
       offline = false;
-      Local.writeJson('c_categories.json', categories.map((Category c) => c.toJson()).toList());
+      Local.writeJson('c_categories.json', categories.map((LibCategory c) => c.toJson()).toList());
       Local.writeJson('c_books.json', books.map((Book b) => b.toJson()).toList());
       Local.writeJson('c_posts.json', posts.map((Post p) => p.toJson()).toList());
     } on ApiException catch (e) {
@@ -140,15 +140,15 @@ class Lib extends ChangeNotifier {
     return null;
   }
 
-  Category? findCategory(String id) {
-    for (final Category c in categories) {
+  LibCategory? findCategory(String id) {
+    for (final LibCategory c in categories) {
       if (c.id == id) return c;
     }
     return null;
   }
 
   String categoryName(String id) {
-    final Category? c = findCategory(id);
+    final LibCategory? c = findCategory(id);
     return c == null ? 'متفرق' : c.name;
   }
 
@@ -183,6 +183,7 @@ class Lib extends ChangeNotifier {
     required String author,
     required String description,
     required String categoryId,
+    String language = 'ur',
     required void Function(int, int) onProgress,
   }) async {
     final String storageName =
@@ -194,6 +195,7 @@ class Lib extends ChangeNotifier {
         'author': author,
         'description': description,
         'category_id': categoryId.isEmpty ? null : categoryId,
+        'language': language,
         'file_path': storageName,
         'file_size': size,
       });
@@ -206,12 +208,14 @@ class Lib extends ChangeNotifier {
     await refresh();
   }
 
-  Future<void> updateBook(Book b, String title, String author, String description, String categoryId) async {
+  Future<void> updateBook(Book b, String title, String author, String description, String categoryId,
+      [String language = 'ur']) async {
     await Api.update('books', b.id, <String, dynamic>{
       'title': title,
       'author': author,
       'description': description,
       'category_id': categoryId.isEmpty ? null : categoryId,
+      'language': language,
     });
     await refresh();
   }
@@ -260,7 +264,7 @@ class Lib extends ChangeNotifier {
 
   Future<void> addCategory(String name) async {
     int maxSort = 0;
-    for (final Category c in categories) {
+    for (final LibCategory c in categories) {
       if (c.sort > maxSort) maxSort = c.sort;
     }
     final String id = 'c${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}';

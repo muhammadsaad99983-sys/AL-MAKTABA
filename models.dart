@@ -8,6 +8,18 @@ const Map<String, String> kKinds = <String, String>{
 
 String kindLabel(String k) => kKinds[k] ?? 'مضمون';
 
+/// Book languages, in the order shown in the app.
+const Map<String, String> kLanguages = <String, String>{
+  'ur': 'اردو',
+  'en': 'English',
+  'ar': 'عربی',
+  'ps': 'پښتو',
+  'other': 'دیگر',
+};
+
+String languageLabel(String k) => kLanguages[k] ?? 'دیگر';
+
+
 String _s(Map<String, dynamic> j, String k) {
   final dynamic v = j[k];
   return v == null ? '' : v.toString();
@@ -40,17 +52,17 @@ String snippet(String s, int max) {
   return '${t.substring(0, max)}...';
 }
 
-class Category {
+class LibCategory {
   final String id;
   String name;
   int sort;
 
-  Category({required this.id, required this.name, this.sort = 0});
+  LibCategory({required this.id, required this.name, this.sort = 0});
 
   Map<String, dynamic> toJson() => <String, dynamic>{'id': id, 'name': name, 'sort': sort};
 
-  factory Category.fromJson(Map<String, dynamic> j) =>
-      Category(id: _s(j, 'id'), name: _s(j, 'name'), sort: _n(j, 'sort'));
+  factory LibCategory.fromJson(Map<String, dynamic> j) =>
+      LibCategory(id: _s(j, 'id'), name: _s(j, 'name'), sort: _n(j, 'sort'));
 }
 
 class Book {
@@ -59,6 +71,7 @@ class Book {
   String author;
   String description;
   String categoryId;
+  String language;
   final String filePath;
   final int fileSize;
   final String createdAt;
@@ -69,6 +82,7 @@ class Book {
     this.author = '',
     this.description = '',
     this.categoryId = '',
+    this.language = 'ur',
     required this.filePath,
     this.fileSize = 0,
     this.createdAt = '',
@@ -80,6 +94,7 @@ class Book {
         'author': author,
         'description': description,
         'category_id': categoryId,
+        'language': language,
         'file_path': filePath,
         'file_size': fileSize,
         'created_at': createdAt,
@@ -91,6 +106,7 @@ class Book {
         author: _s(j, 'author'),
         description: _s(j, 'description'),
         categoryId: _s(j, 'category_id'),
+        language: _s(j, 'language').isEmpty ? 'ur' : _s(j, 'language'),
         filePath: _s(j, 'file_path'),
         fileSize: _n(j, 'file_size'),
         createdAt: _s(j, 'created_at'),

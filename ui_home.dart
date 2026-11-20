@@ -4,6 +4,7 @@ import 'models.dart';
 import 'nav.dart';
 import 'state.dart';
 import 'ui_books.dart';
+import 'ads.dart';
 import 'ui_more.dart';
 import 'ui_search.dart';
 
@@ -29,7 +30,11 @@ class _HomeShellState extends State<HomeShell> {
           const MoreTab(),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const AdBanner(),
+          NavigationBar(
         selectedIndex: tab,
         onDestinationSelected: (int i) => setState(() => tab = i),
         destinations: const <NavigationDestination>[
@@ -53,6 +58,8 @@ class _HomeShellState extends State<HomeShell> {
             selectedIcon: Icon(Icons.menu_open),
             label: 'مزید',
           ),
+        ],
+      ),
         ],
       ),
     );
@@ -106,7 +113,7 @@ class HomeTab extends StatelessWidget {
                         crossAxisSpacing: 10,
                         childAspectRatio: 2.3,
                         children: lib.categories
-                            .map((Category c) => _CategoryCard(category: c))
+                            .map((LibCategory c) => _CategoryCard(category: c))
                             .toList(),
                       ),
                     ],
@@ -196,7 +203,7 @@ class _Header extends StatelessWidget {
 }
 
 class _CategoryCard extends StatelessWidget {
-  final Category category;
+  final LibCategory category;
   const _CategoryCard({required this.category});
 
   @override
