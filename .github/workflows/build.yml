@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+env:
+  # Google's official TEST AdMob App ID. Replace with your own App ID later.
+  ADMOB_APP_ID: ca-app-pub-3940256099942544~3347511713
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -49,7 +53,9 @@ jobs:
           MANIFEST=android/app/src/main/AndroidManifest.xml
           sed -i 's/android:label="[^"]*"/android:label="المکتبۃ الآفتابیہ"/' "$MANIFEST"
           sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application#' "$MANIFEST"
+          sed -i "0,/<activity/s#<activity#<meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"$ADMOB_APP_ID\"/>\n        <activity#" "$MANIFEST"
           grep -q 'android.permission.INTERNET' "$MANIFEST" || { echo "ERROR: INTERNET permission was not added"; exit 1; }
+          grep -q 'com.google.android.gms.ads.APPLICATION_ID' "$MANIFEST" || { echo "ERROR: AdMob App ID was not added"; exit 1; }
 
           MA=$(find android/app/src/main -name MainActivity.kt | head -n 1)
           if [ -z "$MA" ]; then
@@ -64,7 +70,9 @@ jobs:
           cat "$MANIFEST"
 
       - name: Get packages
-        run: flutter pub get
+        run: |
+          flutter pub add google_mobile_ads
+          flutter pub get
 
       - name: Build release APK
         run: flutter build apk --release
