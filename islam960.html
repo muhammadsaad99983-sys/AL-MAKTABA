@@ -1,0 +1,900 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b5f66">
+<title>اسلام 960</title>
+<style>
+:root{
+  --teal:#0b5f66; --teal2:#0f7a80; --teal-d:#08474d;
+  --green:#7ac11f; --green-d:#5a9a10;
+  --bg:#e8f2f4; --card:#ffffff; --gold:#c9a24a; --ink:#17323a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Noto Nastaliq Urdu","Jameel Noori Nastaleeq","Noto Naskh Arabic",system-ui,sans-serif;
+  overscroll-behavior:none}
+#app{max-width:520px;margin:0 auto;height:100%;display:flex;flex-direction:column;background:var(--bg);position:relative}
+header{background:linear-gradient(180deg,var(--teal-d),var(--teal));padding:10px 10px 12px;
+  display:flex;align-items:center;gap:8px;justify-content:space-between;color:#fff}
+header .logo{display:flex;align-items:center;gap:8px;font-size:20px;font-weight:700}
+.logo i{background:var(--green);color:#fff;border-radius:10px;padding:2px 8px;font-style:normal;font-size:15px;font-family:system-ui,sans-serif;font-weight:800;letter-spacing:.5px}
+.top-ic{display:flex;gap:8px}
+.top-ic button{width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;font-size:18px}
+main{flex:1;overflow-y:auto;padding:12px 12px 90px;-webkit-overflow-scrolling:touch}
+.page{display:none}.page.on{display:block}
+
+/* Learn bar */
+.bar{background:linear-gradient(90deg,var(--teal-d),var(--teal2));color:#fff;border-radius:18px;padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;font-size:22px;font-weight:700;border:2px solid #0a4046}
+.six{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.six button{background:linear-gradient(180deg,var(--teal2),var(--teal-d));color:#fff;border:2px solid #0a4046;border-radius:16px;
+  padding:10px 4px;font:inherit;font-size:15px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.six span{font-size:24px;line-height:1}
+
+/* Prayer card */
+.prayer{background:#d5e8ec;border-radius:18px;overflow:hidden;border:2px solid #0a4046}
+.p-head{background:var(--teal-d);color:#fff;display:flex;justify-content:space-between;padding:10px 16px;font-size:17px;font-weight:700}
+.p-now{display:flex;justify-content:space-between;align-items:center;padding:12px 16px 4px}
+.p-now b{font-size:24px}
+.clock{font-family:"Courier New",monospace;font-size:38px;font-weight:700;letter-spacing:1px;direction:ltr}
+.track{margin:6px 16px;height:12px;border-radius:8px;overflow:hidden;display:flex;background:#d9c9d3}
+.track i{display:block;height:100%}
+.track .a{background:repeating-linear-gradient(120deg,#3d9b3f,#3d9b3f 6px,#58b85a 6px,#58b85a 12px)}
+.track .b{background:#e7a529}.track .c{background:#e4d9b4}
+.hijri{padding:6px 16px 10px;font-size:15px;color:#33505a}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 10px 12px;direction:ltr}
+.tile{border-radius:14px;padding:10px 6px;text-align:center;color:#fff;font-family:system-ui,sans-serif}
+.tile h4{margin:0 0 6px;font-size:17px}.tile .t{font-size:24px;font-weight:700}.tile small{font-size:13px}
+.tile .ic{margin-top:6px;font-size:15px;opacity:.9;letter-spacing:6px}
+.t-fajr{background:#41335f}.t-sun{background:#e3a47c}.t-dhuhr{background:#f7e3b3;color:#4a3a10}
+.t-asr{background:#efc387;color:#4a3410}.t-mag{background:#8e4f7b}.t-isha{background:#1e2650}
+
+/* Sections - hadith style cards */
+h2.sec{margin:18px 4px 10px;font-size:20px;color:var(--teal-d);display:flex;align-items:center;gap:8px}
+h2.sec:before{content:"";width:5px;height:22px;background:var(--gold);border-radius:3px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.hc{background:var(--card);border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.18);padding:22px 8px 12px;text-align:center;position:relative;border:0;font:inherit;color:inherit;width:100%}
+.hc:before,.hc:after{content:"❦";position:absolute;color:#8c8c8c;font-size:22px;line-height:1;opacity:.75}
+.hc:before{top:6px;right:8px}.hc:after{bottom:6px;left:8px;transform:rotate(180deg)}
+.hc .corner2{position:absolute;top:6px;left:8px;color:#8c8c8c;font-size:22px;opacity:.75;transform:scaleX(-1)}
+.hc .corner3{position:absolute;bottom:6px;right:8px;color:#8c8c8c;font-size:22px;opacity:.75;transform:scale(-1,-1)}
+.hc .ar{display:block;font-size:30px;line-height:1.9;font-weight:700;min-height:68px;display:flex;align-items:center;justify-content:center}
+.hc .en{display:block;font-size:19px;font-weight:800;color:#111;font-family:system-ui,sans-serif;margin-top:2px}
+.hc .ur{display:block;font-size:17px;font-weight:700;color:#111;margin-top:2px}
+.hc .sub{display:block;font-size:15px;color:#3b9a52;margin-top:6px}
+
+/* Bottom nav */
+nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#f4f8f9;border-top:1px solid #cfdde0;
+  display:flex;justify-content:space-around;padding:8px 0 10px;z-index:5}
+nav button{background:none;border:0;font:inherit;font-size:14px;color:#445;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 14px;border-radius:20px}
+nav button span{font-size:22px}
+nav button.on{background:#cfe8e0;color:var(--teal-d);font-weight:700}
+.back{display:inline-block;margin-bottom:10px;background:var(--teal);color:#fff;border:0;border-radius:20px;padding:6px 16px;font:inherit;font-size:15px}
+.empty{text-align:center;color:#6a8088;padding:30px 10px}
+
+/* ---- Full-screen sub pages (اسمائے حسنیٰ / دعائیں) ---- */
+.ov{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#f7f9fe;z-index:10;display:none;flex-direction:column}
+.ov.on{display:flex}
+.ovh{background:linear-gradient(180deg,#b6a9de,#e0b8bf);height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;direction:ltr;color:#111;flex-shrink:0}
+.ovh h1{margin:0;font:400 20px/1 system-ui,Roboto,sans-serif;flex:1;text-align:center}
+.ovh button{background:none;border:0;font-size:26px;width:40px;height:40px;color:#111}
+.ovh .sp{width:40px}
+.tabs{display:flex;background:#fff;border-bottom:1px solid #ddd;direction:ltr;flex-shrink:0}
+.tabs button{flex:1;border:0;background:none;padding:14px 0;font:700 17px system-ui,Roboto,sans-serif;color:#888;border-bottom:3px solid transparent}
+.tabs button.on{color:#111;border-bottom-color:#dbb3c0}
+.sbar{display:none;padding:8px 14px;background:#fff;direction:ltr}
+.sbar.on{display:block}
+.sbar input{width:100%;padding:10px 14px;border:1px solid #ccc;border-radius:22px;font:16px system-ui,sans-serif;outline:0}
+.dlist{flex:1;overflow-y:auto;padding:14px 16px 24px;-webkit-overflow-scrolling:touch}
+.dc{display:flex;border-radius:22px;overflow:hidden;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);margin-bottom:18px;height:112px;width:100%;border:0;padding:0;font:inherit;color:#111;text-align:start}
+.dc .n{width:92px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font:700 32px system-ui,Roboto,sans-serif;color:#3f9a58;background:#fff}
+.dc .b{flex:1;display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--c);position:relative;border-inline-start:2px solid #3f9a58;overflow:hidden}
+.dc .b:before{content:"";position:absolute;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.28);top:-40px;inset-inline-end:30px}
+.dc .t{flex:1;font-size:21px;line-height:1.7;font-weight:600;position:relative;z-index:1}
+.dc .a{font-size:46px;position:relative;z-index:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.2))}
+.dl-en .t{font:600 22px/1.25 system-ui,Roboto,sans-serif}
+
+.nwrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:30px 16px 0;position:relative;overflow:hidden;touch-action:pan-y}
+.ncard{width:100%;max-width:340px;height:min(62vh,490px);background:#fff;border-radius:30px;position:relative;box-shadow:0 12px 0 -6px #efefef,0 24px 0 -12px #e4e4e4,0 18px 34px rgba(0,0,0,.18);text-align:center;display:flex;flex-direction:column;align-items:center;padding:56px 18px 20px;z-index:2;transition:transform .18s ease,opacity .18s ease}
+.ncard.out{opacity:0;transform:translateX(var(--dx,0))}
+.ncard .o1,.ncard .o2,.ncard .o3,.ncard .o4{position:absolute;font-size:46px;color:#bbb;line-height:1;opacity:.85}
+.o1{top:12px;left:14px;transform:scaleX(-1)}.o2{top:12px;right:14px}.o3{bottom:12px;left:14px;transform:scale(-1,-1)}.o4{bottom:12px;right:14px;transform:scaleY(-1)}
+.ncard .no{font:400 20px system-ui,sans-serif;color:#222;margin-top:10px}
+.ncard .ar{font-family:"Amiri","Noto Naskh Arabic","Scheherazade New",serif;font-size:66px;line-height:1.5;color:#222;margin:18px 0 4px}
+.ncard .ur{color:#3f9a58;font-size:25px;line-height:1.9}
+.ncard .tr{font:400 22px system-ui,sans-serif;color:#222;margin-top:14px;letter-spacing:.3px}
+.ncard .en{font:400 21px/1.4 system-ui,sans-serif;color:#222;margin-top:14px}
+.nctl{display:flex;gap:26px;align-items:center;margin-top:30px;z-index:2;direction:ltr}
+.nctl button{width:46px;height:46px;border-radius:50%;border:0;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);font-size:22px;color:#4a4a8a}
+.nctl span{font:600 16px system-ui,sans-serif;color:#555;min-width:70px;text-align:center}
+.mosque{position:absolute;left:0;right:0;bottom:0;width:100%;height:150px;z-index:1;pointer-events:none}
+
+/* ---- کعبہ ہر صفحے پر ---- */
+.kb{position:absolute;left:0;right:0;bottom:0;width:100%;height:78px;color:#efe6bd;opacity:.5;z-index:0;pointer-events:none}
+header{background:linear-gradient(180deg,#08474d 0%,#0b5f66 55%,#5f9a86 100%);height:118px;align-items:flex-start;position:relative;overflow:hidden}
+header>*:not(.kb){position:relative;z-index:1}
+.ovh{position:relative;overflow:hidden}
+.ovh>*:not(.kb){position:relative;z-index:1}
+.ovh .kb{color:#fff;opacity:.4;height:62px}
+
+/* ---- زکوٰۃ کیلکولیٹر ---- */
+#ov-zakat{background:#fdf3dc;direction:ltr;font-family:system-ui,Roboto,sans-serif}
+.zh{background:linear-gradient(180deg,#0a5c3d,#2f8a5c 60%,#cdbd7c);height:150px;align-items:flex-start;padding-top:14px}
+.zh h1,.zh button{color:#fff}
+.zh .kb{height:92px;color:#f1ecc9;opacity:.65}
+.zbody{flex:1;overflow-y:auto;padding:0 16px 30px;margin-top:-6px}
+.zc{background:linear-gradient(180deg,#0f7a4f,#0a5c3d);border-radius:20px;padding:16px 18px;color:#fff;margin-bottom:16px;box-shadow:0 4px 10px rgba(0,0,0,.18)}
+.zc h3{margin:0 0 8px;font-size:16px;color:#e6c35a}
+.zc p{margin:0;font-size:14px;line-height:1.55}
+.zc p.u{direction:rtl;margin-top:8px;font-family:"Noto Nastaliq Urdu","Jameel Noori Nastaleeq",serif;line-height:2;font-size:15px;color:#ffeab0}
+.zc label{display:block;font-size:15px;color:#e6c35a;margin:0 0 8px}
+.zin{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:0 14px;margin-bottom:12px}
+.zin span{color:#c9e8d4;font-size:17px}
+.zin input{flex:1;background:none;border:0;outline:0;color:#fff;font-size:18px;padding:15px 0;min-width:0}
+.zin input::placeholder{color:rgba(255,255,255,.4)}
+.zbtn{width:100%;border:0;border-radius:14px;padding:15px;font-size:17px;font-weight:700;color:#0a4a30;background:linear-gradient(180deg,#f0cc5a,#d9ac2a)}
+.zres{background:linear-gradient(180deg,#e6c25f,#e0b32e);border-radius:28px;text-align:center;padding:26px 18px;box-shadow:0 0 22px rgba(240,200,80,.7);display:none}
+.zres.on{display:block}
+.zr-t{color:#0a5c3d;font-size:18px;font-weight:600}
+.zr-n{color:#0a6a45;font-size:46px;font-weight:800;margin:8px 0}
+.zr-s{color:#6b5a1e;font-size:16px}
+.zr-w{margin-top:12px;color:#7a2e12;font-size:14px;line-height:1.6}
+
+/* ---- تسبیح (Sebha) ---- */
+#ov-tasbih{background:#031c22;color:#fff;font-family:system-ui,Roboto,sans-serif}
+.th{background:linear-gradient(180deg,#0b3a44,#0a2f38);border-bottom:2px solid #c9a24a;height:70px}
+.th h1{color:#fff;font-weight:700;font-size:24px}.th button{color:#f1e3b0}
+.th .kb{color:#cfe7ea;opacity:.18;height:60px}
+.trow{display:flex;gap:8px;padding:10px 10px 0;direction:ltr;flex-shrink:0}
+.trow button{width:62px;border:0;border-radius:14px;background:#0a2f38;color:#f1e3b0;font-size:34px;line-height:1}
+.trow .sel{flex:1;position:relative}
+.trow select{width:100%;height:56px;border-radius:14px;border:2px solid #3f6b73;background:#0b3a44;color:#fff;font:700 21px system-ui,sans-serif;padding:0 14px;appearance:none;-webkit-appearance:none;text-align:center;text-align-last:center}
+.tcard{margin:10px;background:#04262d;border-radius:20px;padding:18px 18px 12px;flex-shrink:0;min-height:128px;display:flex;flex-direction:column;justify-content:space-between}
+.zar{font-family:"Amiri","Noto Naskh Arabic",serif;font-size:32px;line-height:1.8;text-align:right;direction:rtl;color:#f4f1e0;min-height:70px}
+.tprog{height:12px;border-radius:8px;background:repeating-linear-gradient(120deg,#16414a,#16414a 6px,#1c4d57 6px,#1c4d57 12px);overflow:hidden;direction:ltr}
+.tprog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2fa37f,#3f7fd0,#8a52d6,#d94f86);transition:width .12s}
+.tbeads{flex:1;min-height:0;display:flex;justify-content:center;align-items:center;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.tbeads svg{height:100%;max-height:440px;width:auto;max-width:100%}
+.tbar{display:flex;gap:8px;padding:8px 10px 12px;align-items:center;direction:ltr;flex-shrink:0}
+.tbar button{width:56px;height:56px;border:0;border-radius:14px;background:#0a2f38;color:#f1e3b0;font-size:26px}
+.tbar select{height:56px;width:92px;border-radius:14px;border:2px solid #3f6b73;background:#031c22;color:#fff;font:700 24px system-ui,sans-serif;padding:0 8px;text-align:center}
+.tseq{flex:1;height:56px;border-radius:14px;background:#0a2f38;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:22px}
+.sw{width:58px;height:34px;border-radius:17px;background:#4a6b72;position:relative;border:0;transition:background .15s}
+.sw:after{content:"";position:absolute;top:4px;left:4px;width:26px;height:26px;border-radius:50%;background:#031c22;transition:left .15s}
+.sw.on{background:#8fd6e6}.sw.on:after{left:28px}
+
+/* ---- toast ---- */
+#toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(20,30,40,.92);color:#fff;padding:10px 18px;border-radius:22px;font-size:15px;line-height:1.7;max-width:86%;text-align:center;z-index:99;display:none}
+#toast.on{display:block}
+
+/* ---- دعا کی تفصیل + آڈیو پلیئر ---- */
+.chips{display:flex;overflow-x:auto;white-space:nowrap;background:#fff;border-bottom:1px solid #ddd;flex-shrink:0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:0 0 auto;border:0;background:none;font:inherit;font-size:19px;padding:14px 18px;color:#555;border-bottom:3px solid transparent}
+.chips button.on{color:#111;border-bottom-color:#dbb3c0}
+.ddbody{flex:1;overflow-y:auto;padding:18px 16px 170px}
+.ddcard{background:#fff;border-radius:26px;box-shadow:0 2px 8px rgba(0,0,0,.18);padding:26px 24px}
+.dar{font-family:"Amiri","Noto Naskh Arabic",serif;font-size:32px;line-height:2.1;color:#3f9a58;direction:rtl;text-align:right}
+.dur{font-size:23px;line-height:2.1;color:#111;margin-top:18px;direction:rtl;text-align:right}
+.ddcard hr{border:0;border-top:1.5px solid #555;margin:20px 6px}
+.dref{font-size:20px;line-height:2;color:#111;direction:rtl;text-align:right}
+.player{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,#b6a9de,#e0b8bf);border-radius:36px 36px 0 0;padding:14px 14px 16px;direction:ltr;z-index:3}
+.prow{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.prow button{background:none;border:0;font-size:28px;color:#222;width:46px;height:46px}
+.prow .play{width:84px;height:84px;border-radius:50%;background:#4a9a62;color:#fff;font-size:38px;margin-top:-34px;box-shadow:0 0 0 8px #b6a9de}
+.prow #pMode{font:700 15px "Noto Nastaliq Urdu",system-ui,sans-serif;width:auto;height:40px;padding:0 12px;border-radius:12px;background:#fff}
+.spd{background:#fff;border-radius:12px;padding:9px 12px;font:700 17px system-ui,sans-serif;min-width:58px;text-align:center}
+.pprog{display:flex;align-items:center;gap:8px;margin-top:10px;font:600 15px system-ui,sans-serif;color:#111}
+.pbar{flex:1;height:5px;background:#3a3a3a;border-radius:3px;position:relative}
+.pbar i{position:absolute;left:0;top:0;bottom:0;width:0;background:#4a9a62;border-radius:3px}
+.pbar i:after{content:"";position:absolute;right:-8px;top:-6px;width:17px;height:17px;border-radius:50%;background:#2e8a4a}
+
+/* ---- قبلہ نما ---- */
+#ov-qibla{background:#fdf3dc;direction:ltr;font-family:system-ui,Roboto,sans-serif}
+.qcamc{background:#fffaf0;border:1.5px solid #e6d49a;border-radius:20px;padding:12px 14px;display:flex;align-items:center;gap:14px;box-shadow:0 4px 14px rgba(200,170,70,.35);margin-bottom:14px}
+.qcamc .ic{width:54px;height:54px;border-radius:16px;background:#0f7a4f;color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center}
+.qcamc .tx{flex:1}.qcamc small{display:block;color:#c49a2a;font-size:14px}.qcamc b{font-size:22px;color:#0a5c3d}
+.qcamc .sw{background:#cfd8cf}.qcamc .sw.on{background:#2f9a62}.qcamc .sw:after{background:#fff}
+.qcard{background:linear-gradient(180deg,#0f7a4f,#0a5c3d);border-radius:26px;color:#fff;text-align:center;padding:16px 14px 18px;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.qcard small{color:#cfe7d8;font-size:13px}
+.qcity{font-size:22px;font-weight:700;margin:2px 0}
+.qsel{margin:8px auto 0;display:block;max-width:100%;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:12px;padding:8px 10px;font-size:14px}
+.qsel option{color:#111}
+.qc{position:relative;width:min(80vw,310px);aspect-ratio:1;margin:12px auto 6px;border-radius:50%}
+.qc video{position:absolute;inset:6%;width:88%;height:88%;border-radius:50%;object-fit:cover;display:none}
+.qc.cam video{display:block}
+.qc svg{position:relative;width:100%;height:100%}
+.qdeg{font-size:46px;font-weight:800;margin:0}
+.qinfo{font-size:17px;font-weight:600;min-height:26px;margin-top:4px;color:#ffeab0}
+.qinfo.ok{color:#8dffa8}
+.qmeta{font-size:13px;color:#cfe7d8;margin-top:6px;line-height:1.6}
+.qbtn{margin-top:10px;border:0;border-radius:14px;padding:11px 18px;font-size:15px;font-weight:700;color:#0a4a30;background:linear-gradient(180deg,#f0cc5a,#d9ac2a)}
+.qtip{font-size:12.5px;color:#6b5a1e;line-height:1.7;margin:12px 6px 0;text-align:center}
+</style>
+</head>
+<body>
+<div id="app">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="kaaba" viewBox="0 0 360 90" preserveAspectRatio="xMidYMax slice">
+      <g fill="currentColor">
+        <rect x="0" y="80" width="360" height="10"/>
+        <rect x="52" y="14" width="9" height="68"/><polygon points="49,16 56.5,-2 64,16"/><rect x="48" y="34" width="17" height="4"/>
+        <rect x="299" y="14" width="9" height="68"/><polygon points="296,16 303.5,-2 311,16"/><rect x="295" y="34" width="17" height="4"/>
+        <rect x="132" y="32" width="96" height="50"/>
+        <path d="M70 82V62q9-14 18 0v20zM96 82V58q9-14 18 0v24zM246 82V58q9-14 18 0v24zM272 82V62q9-14 18 0v20z"/>
+        <path d="M10 82V64q8-12 16 0v18zM334 82V64q8-12 16 0v18z"/>
+      </g>
+      <rect x="132" y="42" width="96" height="6" fill="#d9ac2a"/>
+      <rect x="168" y="52" width="14" height="30" fill="#d9ac2a" opacity=".85"/>
+    </symbol>
+  </svg>
+  <header>
+    <svg class="kb" aria-hidden="true"><use href="#kaaba"/></svg>
+    <div class="logo"><i>960</i><span>اسلام</span></div>
+    <div class="top-ic"><button aria-label="تسبیح" data-go="tasbih">📿</button><button aria-label="زکوٰۃ" data-go="zakat">💰</button><button aria-label="قبلہ" data-go="qibla">🧭</button></div>
+  </header>
+  <main id="main">
+    <!-- HOME -->
+    <section class="page on" id="p-home">
+      <div class="bar"><span>🕌</span><span>سیکھیں</span><span>←</span></div>
+      <div class="six">
+        <button data-go="azkar"><span>☀️</span>صبح</button>
+        <button data-go="azkar"><span>🌇</span>شام</button>
+        <button data-go="namaz"><span>🕋</span>نماز</button>
+        <button data-go="tasbih"><span>📿</span>تسبیح</button>
+        <button data-go="azkar"><span>🌙</span>نیند</button>
+        <button data-go="azkar"><span>🌅</span>جاگنا</button>
+      </div>
+
+      <div class="prayer">
+        <div class="p-head"><span id="city">Cedar Rapids</span><span id="gmt" style="direction:ltr"></span></div>
+        <div class="p-now"><b id="pname">فجر</b><span class="clock" id="clock">00:00:00</span></div>
+        <div class="track"><i class="a" id="ta" style="width:40%"></i><i class="b" id="tb" style="width:20%"></i><i class="c" style="width:20%"></i></div>
+        <div class="hijri" id="hijri"></div>
+        <div class="tiles" id="tiles"></div>
+      </div>
+
+      <h2 class="sec">اسلام 960</h2>
+      <div class="grid" id="homeGrid"></div>
+
+      <h2 class="sec">میرا مکتبہ</h2>
+      <div class="grid" id="myGrid"></div>
+    </section>
+
+    <!-- Generic section page -->
+    <section class="page" id="p-sec">
+      <button class="back" id="backBtn">← واپس</button>
+      <h2 class="sec" id="secTitle"></h2>
+      <div class="grid" id="secGrid"></div>
+    </section>
+
+    <section class="page" id="p-books"><h2 class="sec">کتابیں</h2><div class="grid" id="bookGrid"></div></section>
+    <section class="page" id="p-writ"><h2 class="sec">تحریریں</h2><div class="grid" id="writGrid"></div></section>
+    <section class="page" id="p-more"><h2 class="sec">مزید</h2><div class="grid" id="moreGrid"></div></section>
+  </main>
+
+  <nav id="nav">
+    <button data-tab="home" class="on"><span>🏠</span>مرکزی</button>
+    <button data-tab="books"><span>📖</span>کتابیں</button>
+    <button data-tab="writ"><span>📝</span>تحریریں</button>
+    <button data-tab="more"><span>☰</span>مزید</button>
+  </nav>
+
+  <!-- اسمائے حسنیٰ -->
+  <div class="ov" id="ov-names">
+    <div class="ovh"><svg class="kb" aria-hidden="true"><use href="#kaaba"/></svg><button id="nBack" aria-label="back">←</button><h1>99 Names of Allah (S.W.T)</h1><span class="sp"></span></div>
+    <div class="nwrap">
+      <div class="ncard" id="ncard"></div>
+      <div class="nctl"><button id="nPrev" aria-label="prev">‹</button><span id="nCount"></span><button id="nNext" aria-label="next">›</button></div>
+      <svg class="mosque" viewBox="0 0 360 150" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <polygon points="0,150 0,118 90,92 200,128 360,104 360,150" fill="#8b96d6"/>
+        <polygon points="0,150 0,128 30,120 130,138 260,112 360,124 360,150" fill="#5f6aae"/>
+        <polygon points="0,150 0,140 120,132 230,150" fill="#1f2d52"/>
+        <polygon points="230,150 300,116 360,126 360,150" fill="#7a80bd"/>
+        <g fill="#4a5a9a">
+          <rect x="146" y="64" width="6" height="58"/><rect x="208" y="64" width="6" height="58"/>
+          <polygon points="143,66 149,40 155,66"/><polygon points="205,66 211,40 217,66"/>
+          <rect x="156" y="98" width="48" height="26"/>
+          <path d="M160 98 Q180 52 200 98Z"/><rect x="178" y="44" width="4" height="10"/>
+          <rect x="170" y="106" width="20" height="18" fill="#2c3a72"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- دعائیں -->
+  <div class="ov" id="ov-dua">
+    <div class="ovh"><svg class="kb" aria-hidden="true"><use href="#kaaba"/></svg><button id="dBack" aria-label="back">←</button><h1>Supplication</h1><button id="dSearch" aria-label="search">⌕</button></div>
+    <div class="sbar" id="dSbar"><input id="dInput" placeholder="Search…" autocomplete="off"></div>
+    <div class="tabs"><button id="tUr" class="on">URDU</button><button id="tEn">ENGLISH</button></div>
+    <div class="dlist" id="dlist"></div>
+  </div>
+
+  <!-- زکوٰۃ -->
+  <div class="ov" id="ov-zakat">
+    <div class="ovh zh"><svg class="kb" aria-hidden="true"><use href="#kaaba"/></svg><button id="zBack" aria-label="back">←</button><h1>Zakat Calculator</h1><span class="sp"></span></div>
+    <div class="zbody">
+      <div class="zc" style="margin-top:0">
+        <h3>What is Zakat?</h3>
+        <p>Zakat is 2.5% of your total wealth that must be given to those in need annually if you meet the nisab threshold.</p>
+        <p class="u">زکوٰۃ آپ کے کل مال کا ڈھائی فیصد ہے، جو نصاب کو پہنچنے اور سال گزرنے پر مستحقین کو دینا لازم ہے۔</p>
+      </div>
+      <div class="zc">
+        <label for="zWealth">Total Wealth Amount / کل مال</label>
+        <div class="zin"><span>Rs</span><input id="zWealth" type="number" inputmode="decimal" min="0" placeholder="10000"></div>
+        <label for="zNisab">Nisab value (optional) / نصاب کی مالیت</label>
+        <div class="zin"><span>Rs</span><input id="zNisab" type="number" inputmode="decimal" min="0" placeholder="current nisab"></div>
+        <button class="zbtn" id="zCalc">Calculate Zakat</button>
+      </div>
+      <div class="zres" id="zres"></div>
+    </div>
+  </div>
+
+  <!-- تسبیح -->
+  <div class="ov" id="ov-tasbih">
+    <div class="ovh th"><svg class="kb" aria-hidden="true"><use href="#kaaba"/></svg><button id="tBack" aria-label="back">←</button><h1>Sebha</h1><span class="sp"></span></div>
+    <div class="trow"><button id="zPrev" aria-label="prev">‹</button><div class="sel"><select id="zSel" aria-label="Choose Zekr"></select></div><button id="zNext" aria-label="next">›</button></div>
+    <div class="tcard"><div class="zar" id="zAr"></div><div class="tprog"><i id="zProg"></i></div></div>
+    <div class="tbeads"><svg id="tsvg" viewBox="0 0 360 440" aria-label="tap to count"></svg></div>
+    <div class="tbar">
+      <button id="tUndo" aria-label="undo">↶</button>
+      <select id="tTarget" aria-label="target"><option>10</option><option selected>25</option><option>33</option><option>100</option></select>
+      <div class="tseq"><span>Sequence</span><button class="sw on" id="tSeq" aria-label="sequence" style="width:58px;height:34px"></button></div>
+      <button id="tReset" aria-label="reset">⟳</button>
+    </div>
+  </div>
+
+  <!-- دعا کی تفصیل -->
+  <div class="ov" id="ov-dd">
+    <div class="ovh"><svg class="kb" aria-hidden="true"><use href="#kaaba"/></svg><button id="ddBack" aria-label="back">←</button><h1>Supplication</h1><span class="sp"></span></div>
+    <div class="chips" id="chips"></div>
+    <div class="ddbody"><div class="ddcard"><div class="dar" id="dAr"></div><div class="dur" id="dUr"></div><hr><div class="dref" id="dRef"></div></div></div>
+    <div class="player">
+      <div class="prow">
+        <button id="pReplay" aria-label="replay">⟲</button><button id="pPrev" aria-label="prev">⏮</button>
+        <button class="play" id="pPlay" aria-label="play">▶</button>
+        <button id="pNext" aria-label="next">⏭</button><button id="pMode">عربی</button><span class="spd" id="pSpd">1x</span>
+      </div>
+      <div class="pprog"><span id="pT">00:00</span><div class="pbar"><i id="pFill"></i></div><span id="pD">00:00</span></div>
+    </div>
+  </div>
+
+  <!-- قبلہ نما -->
+  <div class="ov" id="ov-qibla">
+    <div class="ovh zh"><svg class="kb" aria-hidden="true"><use href="#kaaba"/></svg><button id="qBack" aria-label="back">←</button><h1>Qibla Direction</h1><span class="sp"></span></div>
+    <div class="zbody">
+      <div class="qcamc"><div class="ic">📷</div><div class="tx"><small>Turn On</small><b>Camera</b></div><button class="sw" id="qCamSw" aria-label="camera"></button></div>
+      <div class="qcard">
+        <small>Your Location</small>
+        <div class="qcity" id="qCity">Locating…</div>
+        <small id="qCoords">—</small>
+        <select class="qsel" id="qSel"></select>
+        <div class="qc" id="qc">
+          <video id="qVideo" playsinline muted></video>
+          <svg viewBox="0 0 300 300" id="qsvg" aria-label="Qibla compass"></svg>
+        </div>
+        <small>Direction</small>
+        <p class="qdeg" id="qDeg">—</p>
+        <div class="qinfo" id="qInfo"></div>
+        <div class="qmeta" id="qMeta"></div>
+        <button class="qbtn" id="qEnable">Enable Compass · قطب نما چلائیں</button>
+      </div>
+      <p class="qtip">فون کو سیدھا (زمین کے متوازی) پکڑیں، دھاتی چیزوں اور مقناطیس سے دور رکھیں، اور درستگی کے لیے فون کو ہوا میں ∞ کی شکل میں گھمائیں۔ قطب نما مقناطیسی شمال استعمال کرتا ہے، اس لیے ایک دو درجے کا معمولی فرق ممکن ہے۔</p>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+</div>
+
+<script>
+"use strict";
+/* ---------- Data ---------- */
+// کارڈ: [عربی/خوشخط عنوان, English, اردو, رنگ, ذیلی عبارت]
+const C={gold:"#f2b200",green:"#5fa87a",red:"#b8503f",blue:"#2f84c6",mint:"#2fb47c",purple:"#7a4fd0",tan:"#b79a6a",sky:"#3b8fd0",teal:"#0b6a70"};
+const SECTIONS={
+  azkar:{t:"اذکار و تسبیحات",items:[
+    ["اذکارِ صبح","Morning","صبح کے اذکار",C.gold],["اذکارِ شام","Evening","شام کے اذکار",C.red],
+    ["تسبیح","Tasbih","ڈیجیٹل تسبیح",C.green],["نیند","Sleep","سونے کے اذکار",C.purple],
+    ["بیداری","Waking","جاگنے کے اذکار",C.blue],["بعد نماز","After Prayer","نماز کے بعد",C.mint]]},
+  dua:{t:"دعائیں",items:[
+    ["مسنون دعائیں","Masnoon","روزمرہ دعائیں",C.green],["قرآنی دعائیں","Quranic","قرآنی دعائیں",C.gold],
+    ["سفر","Travel","سفر کی دعا",C.blue],["کھانا","Food","کھانے کی دعا",C.red],
+    ["استخارہ","Istikhara","استخارہ",C.purple],["مغفرت","Forgiveness","استغفار",C.mint]]},
+  namaz:{t:"نماز کے اوقات",items:[
+    ["اوقاتِ نماز","Timings","آج کے اوقات",C.teal],["قبلہ","Qibla","قبلہ نما",C.gold],
+    ["طریقۂ نماز","How to Pray","نماز سیکھیں",C.green],["قضا","Qaza","قضا نمازیں",C.red]]},
+  mazameen:{t:"اسلامی مضامین",items:[
+    ["عقائد","Aqeedah","عقائد",C.blue],["عبادات","Ibadaat","عبادات",C.green],
+    ["معاملات","Muamalat","معاملات",C.gold],["اخلاق","Akhlaq","اخلاق و آداب",C.purple]]},
+  qibla:{t:"قبلہ نما",items:[["قبلہ نما","Qibla","سمتِ قبلہ",C.gold]]},
+  tareekh:{t:"اسلامی تاریخ",items:[
+    ["سیرتِ نبوی","Seerah","سیرتِ طیبہ",C.green],["خلفائے راشدین","Khulafa","خلفائے راشدین",C.gold],
+    ["صحابہؓ","Sahaba","صحابۂ کرام",C.red],["غزوات","Ghazwat","غزوات",C.blue]]},
+  fatawa:{t:"فتاویٰ",items:[
+    ["عبادات","Ibadaat","عبادات کے مسائل",C.green],["معاملات","Muamalat","معاملات کے مسائل",C.gold],
+    ["نکاح و طلاق","Family","عائلی مسائل",C.purple],["متفرق","Misc","متفرق",C.tan]]},
+  fav:{t:"پسندیدہ",items:[]},
+  recent:{t:"حالیہ مطالعہ",items:[]},
+  down:{t:"ڈاؤنلوڈ شدہ کتابیں",items:[]},
+  settings:{t:"سیٹنگز",items:[
+    ["زبان","Language","زبان",C.blue],["تھیم","Theme","رنگ",C.green],["الارم","Alerts","اذان الرٹ",C.gold],["ڈیٹا","Data","ڈیٹا صاف کریں",C.red]]}
+};
+// ہوم کے خانے — (اسلامی کیلنڈر، عربی زبان، شکایت/تجویز، اعلانات ہٹا دیے گئے)
+SECTIONS.names={t:"اسمائے حسنیٰ",items:[]};
+SECTIONS.zakat={t:"زکوٰۃ کیلکولیٹر",items:[]};
+SECTIONS.tasbih={t:"تسبیح",items:[]};
+const HOME=[["names","✨"],["tasbih","📿"],["zakat","💰"],["azkar","🌙"],["dua","🤲"],["namaz","🕌"],["mazameen","📄"],["qibla","🧭"],["tareekh","🏛️"],["fatawa","⚖️"]];
+const MY=[["fav","❤️"],["recent","🕘"],["down","⬇️"],["settings","⚙️"]];
+const BOOKS=[
+  ["صحیح البخاری","Al-Bukhari","صحیح بخاری",C.gold],["صحیح مسلم","Al-Muslim","صحیح مسلم",C.green],
+  ["جامع الترمذی","Al-Tirmazi","جامع ترمذی",C.red],["سنن أبی داود","Abu Dawood","سنن ابی داؤد",C.blue],
+  ["سنن النسائی","Al-Nasai","سنن نسائی",C.mint],["سنن ابن ماجہ","Ibn e Maja","سنن ابن ماجہ",C.purple]];
+const WRIT=[["اسلامی مضامین","Articles","مضامین",C.blue],["فتاویٰ","Fatawa","فتاویٰ",C.gold],["اسلامی تاریخ","History","تاریخ",C.green]];
+const MORE=[["پسندیدہ","Favourites","پسندیدہ",C.red],["حالیہ مطالعہ","Recent","حالیہ مطالعہ",C.blue],["سیٹنگز","Settings","سیٹنگز",C.tan]];
+
+/* ---------- Card builder (ہر سیکشن کا انداز یکساں) ---------- */
+function card(it,sub,go){
+  const b=document.createElement("button");b.className="hc";
+  b.innerHTML='<i class="corner2">❦</i><i class="corner3">❦</i>'+
+    '<span class="ar" style="color:'+it[3]+'">'+it[0]+'</span>'+
+    '<span class="en">'+it[1]+'</span><span class="ur">'+it[2]+'</span>'+
+    '<span class="sub">'+(sub||"ڈیٹا ہٹائیں")+'</span>';
+  if(go)b.onclick=go;return b;
+}
+function fill(id,list,sub,go){
+  const el=document.getElementById(id),f=document.createDocumentFragment();
+  list.forEach(it=>f.appendChild(card(it,sub,go&&(()=>go(it)))));el.replaceChildren(f);
+}
+function homeCards(el,list){
+  const f=document.createDocumentFragment();
+  list.forEach(([k,ic])=>{
+    const s=SECTIONS[k];
+    const b=card([ic,"",s.t,C.teal],"کھولیں",()=>openSec(k));
+    b.querySelector(".en").remove();b.querySelector(".ar").style.fontSize="36px";
+    f.appendChild(b);
+  });
+  el.replaceChildren(f);
+}
+
+/* ---------- Navigation (صرف ضرورت پر بناؤ — ہینگ سے بچاؤ) ---------- */
+const pages=["home","sec","books","writ","more"];
+let built={};
+function show(p){
+  pages.forEach(x=>document.getElementById("p-"+x).classList.toggle("on",x===p));
+  document.getElementById("main").scrollTop=0;
+}
+function tab(t){
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));
+  if(t==="books"&&!built.b){fill("bookGrid",BOOKS);built.b=1}
+  if(t==="writ"&&!built.w){fill("writGrid",WRIT);built.w=1}
+  if(t==="more"&&!built.m){fill("moreGrid",MORE);built.m=1}
+  show(t);
+}
+function openSec(k){
+  if(k==="names")return openNames();
+  if(k==="dua")return openDua();
+  if(k==="qibla")return openQibla();
+  if(k==="zakat")return openZakat();
+  if(k==="tasbih")return openTasbih();
+  const s=SECTIONS[k];
+  document.getElementById("secTitle").textContent=s.t;
+  const g=document.getElementById("secGrid");
+  if(s.items.length)fill("secGrid",s.items);
+  else g.innerHTML='<div class="empty" style="grid-column:1/-1">ابھی کچھ موجود نہیں</div>';
+  show("sec");
+}
+document.getElementById("nav").onclick=e=>{const b=e.target.closest("button");if(b)tab(b.dataset.tab)};
+document.getElementById("backBtn").onclick=()=>tab("home");
+document.querySelectorAll(".six button").forEach(b=>b.onclick=()=>openSec(b.dataset.go));
+
+/* ---------- Prayer card ---------- */
+const PR=[
+  {k:"fajr",n:"فجر",e:"Fajr",h:5,m:24,c:"t-fajr",i:"🌆"},
+  {k:"sun",n:"طلوعِ آفتاب",e:"Sunrise",h:6,m:43,c:"t-sun",i:"🌅"},
+  {k:"dhuhr",n:"ظہر",e:"Dhuhr",h:11,m:50,c:"t-dhuhr",i:"☀️"},
+  {k:"asr",n:"عصر",e:"Asr",h:14,m:33,c:"t-asr",i:"🌤️"},
+  {k:"mag",n:"مغرب",e:"Maghrib",h:16,m:56,c:"t-mag",i:"🌇"},
+  {k:"isha",n:"عشاء",e:"Isha",h:18,m:15,c:"t-isha",i:"🌙"}];
+function fmt12(h,m){const ap=h>=12?"PM":"AM";const hh=((h+11)%12)+1;return String(hh).padStart(2,"0")+":"+String(m).padStart(2,"0")+" <small>"+ap+"</small>"}
+(function tiles(){
+  const t=document.getElementById("tiles");
+  t.innerHTML=PR.map(p=>'<div class="tile '+p.c+'"><h4>'+p.e+'</h4><div class="t">'+fmt12(p.h,p.m)+'</div><div class="ic">🔔🔊</div></div>').join("");
+})();
+function tz(){const o=-new Date().getTimezoneOffset()/60;return "GMT"+(o>=0?"+":"")+o.toFixed(1)}
+document.getElementById("gmt").textContent=tz();
+try{document.getElementById("hijri").textContent=new Intl.DateTimeFormat("ur-u-ca-islamic",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date())}catch(e){}
+function tick(){
+  const now=new Date(),sec=now.getHours()*3600+now.getMinutes()*60+now.getSeconds();
+  const T=PR.map(p=>p.h*3600+p.m*60);
+  let idx=T.findIndex(x=>x>sec);const wrap=idx===-1;if(wrap)idx=0;
+  let diff=T[idx]-sec;if(wrap)diff+=86400;
+  const prev=wrap?T[T.length-1]-86400:(idx?T[idx-1]:T[T.length-1]-86400);
+  const span=T[idx]+(wrap?86400:0)-prev,done=span-diff;
+  document.getElementById("pname").textContent=PR[idx].n;
+  const h=Math.floor(diff/3600),m=Math.floor(diff%3600/60),s=diff%60;
+  document.getElementById("clock").textContent=[h,m,s].map(v=>String(v).padStart(2,"0")).join(":");
+  const pct=Math.max(0,Math.min(100,done/span*100));
+  document.getElementById("ta").style.width=Math.min(pct,45)+"%";
+  document.getElementById("tb").style.width=Math.max(0,Math.min(pct-45,20))+"%";
+}
+tick();
+/* ایک ہی ہلکا ٹائمر؛ ٹیب چھپا ہو تو رکا رہتا ہے */
+let timer=setInterval(tick,1000);
+document.addEventListener("visibilitychange",()=>{clearInterval(timer);if(!document.hidden){tick();timer=setInterval(tick,1000)}});
+
+/* ================= اسمائے حسنیٰ ================= */
+// [عربی, transliteration, اردو, English]
+const N=[
+["اَلرَّحْمٰنُ","Ar-Rahman","نہایت مہربان","The Most Gracious"],["اَلرَّحِيمُ","Ar-Raheem","بہت رحم کرنے والا","The Most Merciful"],
+["اَلْمَلِكُ","Al-Malik","حقیقی بادشاہ","The King"],["اَلْقُدُّوسُ","Al-Quddus","نہایت پاک","The Most Holy"],
+["اَلسَّلَامُ","As-Salam","سلامتی دینے والا","The Source of Peace"],["اَلْمُؤْمِنُ","Al-Mu'min","امن دینے والا","The Giver of Security"],
+["اَلْمُهَيْمِنُ","Al-Muhaymin","نگہبان","The Guardian"],["اَلْعَزِيزُ","Al-Aziz","غالب","The Almighty"],
+["اَلْجَبَّارُ","Al-Jabbar","زبردست","The Compeller"],["اَلْمُتَكَبِّرُ","Al-Mutakabbir","بڑائی والا","The Supreme"],
+["اَلْخَالِقُ","Al-Khaliq","پیدا کرنے والا","The Creator"],["اَلْبَارِئُ","Al-Bari'","وجود بخشنے والا","The Evolver"],
+["اَلْمُصَوِّرُ","Al-Musawwir","ایسی ذات جو مخلوق کی صورتیں بناتا ہو","The One who forms His creatures in different pictures"],
+["اَلْغَفَّارُ","Al-Ghaffar","بہت بخشنے والا","The Great Forgiver"],["اَلْقَهَّارُ","Al-Qahhar","سب پر غالب","The All-Subduer"],
+["اَلْوَهَّابُ","Al-Wahhab","بہت عطا کرنے والا","The Bestower"],["اَلرَّزَّاقُ","Ar-Razzaq","رزق دینے والا","The Provider"],
+["اَلْفَتَّاحُ","Al-Fattah","کھولنے والا","The Opener"],["اَلْعَلِيمُ","Al-Alim","سب جاننے والا","The All-Knowing"],
+["اَلْقَابِضُ","Al-Qabid","تنگی کرنے والا","The Constrictor"],["اَلْبَاسِطُ","Al-Basit","کشادگی دینے والا","The Expander"],
+["اَلْخَافِضُ","Al-Khafid","پست کرنے والا","The Abaser"],["اَلرَّافِعُ","Ar-Rafi","بلند کرنے والا","The Exalter"],
+["اَلْمُعِزُّ","Al-Mu'izz","عزت دینے والا","The Giver of Honour"],["اَلْمُذِلُّ","Al-Mudhill","ذلت دینے والا","The Giver of Dishonour"],
+["اَلسَّمِيعُ","As-Sami","سب سننے والا","The All-Hearing"],["اَلْبَصِيرُ","Al-Basir","سب دیکھنے والا","The All-Seeing"],
+["اَلْحَكَمُ","Al-Hakam","فیصلہ کرنے والا","The Judge"],["اَلْعَدْلُ","Al-Adl","سراپا انصاف","The Utterly Just"],
+["اَللَّطِيفُ","Al-Latif","باریک بیں، مہربان","The Subtle One"],["اَلْخَبِيرُ","Al-Khabir","پوری خبر رکھنے والا","The All-Aware"],
+["اَلْحَلِيمُ","Al-Halim","بردبار","The Forbearing"],["اَلْعَظِيمُ","Al-Azim","عظمت والا","The Magnificent"],
+["اَلْغَفُورُ","Al-Ghafur","بخشنے والا","The Forgiving"],["اَلشَّكُورُ","Ash-Shakur","قدر دان","The Appreciative"],
+["اَلْعَلِيُّ","Al-Ali","بلند مرتبہ","The Most High"],["اَلْكَبِيرُ","Al-Kabir","سب سے بڑا","The Most Great"],
+["اَلْحَفِيظُ","Al-Hafiz","حفاظت کرنے والا","The Preserver"],["اَلْمُقِيتُ","Al-Muqit","روزی پہنچانے والا","The Sustainer"],
+["اَلْحَسِيبُ","Al-Hasib","حساب لینے والا","The Reckoner"],["اَلْجَلِيلُ","Al-Jalil","جلال والا","The Majestic"],
+["اَلْكَرِيمُ","Al-Karim","کرم کرنے والا","The Generous"],["اَلرَّقِيبُ","Ar-Raqib","نگرانی کرنے والا","The Watchful"],
+["اَلْمُجِيبُ","Al-Mujib","دعا قبول کرنے والا","The Responsive"],["اَلْوَاسِعُ","Al-Wasi","وسعت والا","The All-Encompassing"],
+["اَلْحَكِيمُ","Al-Hakim","حکمت والا","The Wise"],["اَلْوَدُودُ","Al-Wadud","محبت کرنے والا","The Loving"],
+["اَلْمَجِيدُ","Al-Majid","بزرگی والا","The Glorious"],["اَلْبَاعِثُ","Al-Ba'ith","دوبارہ زندہ کرنے والا","The Resurrector"],
+["اَلشَّهِيدُ","Ash-Shahid","ہر چیز پر گواہ","The Witness"],["اَلْحَقُّ","Al-Haqq","سچا","The Truth"],
+["اَلْوَكِيلُ","Al-Wakil","کارساز","The Trustee"],["اَلْقَوِيُّ","Al-Qawi","بڑی قوت والا","The Most Strong"],
+["اَلْمَتِينُ","Al-Matin","نہایت مضبوط","The Firm"],["اَلْوَلِيُّ","Al-Wali","مددگار و دوست","The Protecting Friend"],
+["اَلْحَمِيدُ","Al-Hamid","تعریف کے لائق","The Praiseworthy"],["اَلْمُحْصِي","Al-Muhsi","ہر چیز کا شمار رکھنے والا","The Counter"],
+["اَلْمُبْدِئُ","Al-Mubdi","پہلی بار پیدا کرنے والا","The Originator"],["اَلْمُعِيدُ","Al-Mu'id","دوبارہ لوٹانے والا","The Restorer"],
+["اَلْمُحْيِي","Al-Muhyi","زندگی دینے والا","The Giver of Life"],["اَلْمُمِيتُ","Al-Mumit","موت دینے والا","The Giver of Death"],
+["اَلْحَيُّ","Al-Hayy","ہمیشہ زندہ","The Ever-Living"],["اَلْقَيُّومُ","Al-Qayyum","سب کو قائم رکھنے والا","The Self-Subsisting"],
+["اَلْوَاجِدُ","Al-Wajid","سب کچھ پانے والا","The Finder"],["اَلْمَاجِدُ","Al-Majid","بزرگ","The Noble"],
+["اَلْوَاحِدُ","Al-Wahid","اکیلا","The One"],["اَلْأَحَدُ","Al-Ahad","یکتا","The Unique"],
+["اَلصَّمَدُ","As-Samad","بے نیاز","The Eternal"],["اَلْقَادِرُ","Al-Qadir","قدرت والا","The Able"],
+["اَلْمُقْتَدِرُ","Al-Muqtadir","پوری قدرت والا","The All-Powerful"],["اَلْمُقَدِّمُ","Al-Muqaddim","آگے کرنے والا","The Expediter"],
+["اَلْمُؤَخِّرُ","Al-Mu'akhkhir","پیچھے کرنے والا","The Delayer"],["اَلْأَوَّلُ","Al-Awwal","سب سے پہلے","The First"],
+["اَلْآخِرُ","Al-Akhir","سب کے بعد","The Last"],["اَلظَّاهِرُ","Az-Zahir","ظاہر","The Manifest"],
+["اَلْبَاطِنُ","Al-Batin","پوشیدہ","The Hidden"],["اَلْوَالِي","Al-Wali","کارساز و مالک","The Governor"],
+["اَلْمُتَعَالِي","Al-Muta'ali","بلند و برتر","The Most Exalted"],["اَلْبَرُّ","Al-Barr","احسان کرنے والا","The Source of Goodness"],
+["اَلتَّوَّابُ","At-Tawwab","توبہ قبول کرنے والا","The Acceptor of Repentance"],["اَلْمُنْتَقِمُ","Al-Muntaqim","بدلہ لینے والا","The Avenger"],
+["اَلْعَفُوُّ","Al-Afuww","معاف کرنے والا","The Pardoner"],["اَلرَّءُوفُ","Ar-Ra'uf","نہایت شفیق","The Compassionate"],
+["مَالِكُ الْمُلْكِ","Malik-ul-Mulk","بادشاہت کا مالک","Owner of Sovereignty"],
+["ذُو الْجَلَالِ وَالْإِكْرَامِ","Dhul-Jalali wal-Ikram","جلال و اکرام والا","Lord of Majesty and Generosity"],
+["اَلْمُقْسِطُ","Al-Muqsit","انصاف کرنے والا","The Equitable"],["اَلْجَامِعُ","Al-Jami","جمع کرنے والا","The Gatherer"],
+["اَلْغَنِيُّ","Al-Ghani","بے نیاز","The Self-Sufficient"],["اَلْمُغْنِي","Al-Mughni","غنی کرنے والا","The Enricher"],
+["اَلْمَانِعُ","Al-Mani","روکنے والا","The Preventer"],["اَلضَّارُّ","Ad-Darr","نقصان کا اختیار رکھنے والا","The Distresser"],
+["اَلنَّافِعُ","An-Nafi","نفع دینے والا","The Benefactor"],["اَلنُّورُ","An-Nur","نور","The Light"],
+["اَلْهَادِي","Al-Hadi","ہدایت دینے والا","The Guide"],["اَلْبَدِيعُ","Al-Badi","بے مثال بنانے والا","The Incomparable Originator"],
+["اَلْبَاقِي","Al-Baqi","ہمیشہ باقی رہنے والا","The Everlasting"],["اَلْوَارِثُ","Al-Warith","سب کا وارث","The Inheritor"],
+["اَلرَّشِيدُ","Ar-Rashid","راہ دکھانے والا","The Guide to the Right Path"],["اَلصَّبُورُ","As-Sabur","بہت صبر والا","The Patient"]
+];
+let ni=0,nBusy=false;
+const nEl=document.getElementById("ncard");
+function nRender(){
+  const d=N[ni];
+  nEl.innerHTML='<i class="o1">❦</i><i class="o2">❦</i><i class="o3">❦</i><i class="o4">❦</i>'+
+    '<div class="no">'+(ni+1)+'</div><div class="ar">'+d[0]+'</div><div class="ur">'+d[2]+'</div>'+
+    '<div class="tr">'+d[1].toUpperCase()+'</div><div class="en">'+d[3]+'</div>';
+  document.getElementById("nCount").textContent=(ni+1)+" / "+N.length;
+}
+function nGo(step){
+  if(nBusy)return;nBusy=true;
+  nEl.style.setProperty("--dx",(step>0?-60:60)+"px");nEl.classList.add("out");
+  setTimeout(()=>{ni=(ni+step+N.length)%N.length;nRender();nEl.style.setProperty("--dx",(step>0?60:-60)+"px");
+    requestAnimationFrame(()=>{nEl.classList.remove("out");nBusy=false})},180);
+}
+function openNames(){nRender();document.getElementById("ov-names").classList.add("on")}
+document.getElementById("nBack").onclick=()=>document.getElementById("ov-names").classList.remove("on");
+document.getElementById("nNext").onclick=()=>nGo(1);
+document.getElementById("nPrev").onclick=()=>nGo(-1);
+(function(){let x0=null;const w=document.querySelector(".nwrap");
+  w.addEventListener("touchstart",e=>{x0=e.touches[0].clientX},{passive:true});
+  w.addEventListener("touchend",e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)>50)nGo(dx<0?1:-1)},{passive:true});
+})();
+
+/* ================= دعائیں ================= */
+const COL=["#86a3c4","#d4bc8a","#a9e0e8","#3aaec0","#c9919c","#a9d1e8","#e0dc7e","#b8e3d0","#c2cdf2","#e9b8b8"];
+const DUA=[
+["سونے کی دعا","Supplications at the time of sleeping","🛏️"],["جاگنے کی دعا","Supplication upon Awakening","🌅"],
+["بیت الخلاء میں داخل ہونے سے پہلے کی دعا","Supplication before entering Lavatory","🚪"],["بیت الخلاء سے نکلنے کی دعا","Supplication when exiting Lavatory","🚶"],
+["مسجد میں داخل ہونے کی دعا","Supplication to enter the Mosque","🕌"],["مسجد سے نکلنے کی دعا","Supplication when leaving the Mosque","🕋"],
+["کھانا کھانے سے پہلے کی دعا","Supplication before eating","🍽️"],["کھانا کھانے کے بعد کی دعا","Supplication after eating","🥛"],
+["گھر میں داخل ہونے کی دعا","Supplication when entering home","🏠"],["گھر سے نکلنے کی دعا","Supplication when leaving home","🚪"],
+["لباس پہننے کی دعا","Supplication when wearing clothes","👕"],["آئینہ دیکھنے کی دعا","Supplication when looking in the mirror","🪞"],
+["آغازِ سفر کی دعا","Supplication for starting a journey","🚗"],["سواری پر بیٹھنے کی دعا","Supplication when mounting a vehicle","🐪"],
+["کسی شہر یا بستی میں داخل ہونے کی دعا","Supplication when entering a city or town","🏙️"],["بدشگونی سے اظہار برأت کے لیے دعا","Supplication for disavowing ill omen","🤝"],
+["غم و پریشانی کی دعا","Supplication in distress","🤲"],["استخارہ کی دعا","Supplication of Istikhara","🌙"]
+];
+let dLang="ur";
+function dRender(){
+  const q=document.getElementById("dInput").value.trim().toLowerCase(),en=dLang==="en",f=document.createDocumentFragment();
+  DUA.forEach((d,i)=>{
+    const t=en?d[1]:d[0];if(q&&t.toLowerCase().indexOf(q)<0)return;
+    const b=document.createElement("button");b.className="dc"+(en?" dl-en":"");b.dir=en?"ltr":"rtl";b.style.setProperty("--c",COL[i%COL.length]);
+    b.innerHTML='<div class="n">'+String(i+1).padStart(2,"0")+'</div><div class="b"><div class="t">'+t+'</div><div class="a">'+d[2]+'</div></div>';
+    b.onclick=()=>openDD(i);
+    f.appendChild(b);
+  });
+  const L=document.getElementById("dlist");L.replaceChildren(f);L.scrollTop=0;
+}
+function dTab(l){dLang=l;document.getElementById("tUr").classList.toggle("on",l==="ur");document.getElementById("tEn").classList.toggle("on",l==="en");dRender()}
+function openDua(){dRender();document.getElementById("ov-dua").classList.add("on")}
+document.getElementById("dBack").onclick=()=>document.getElementById("ov-dua").classList.remove("on");
+document.getElementById("tUr").onclick=()=>dTab("ur");
+document.getElementById("tEn").onclick=()=>dTab("en");
+document.getElementById("dSearch").onclick=()=>{const s=document.getElementById("dSbar");s.classList.toggle("on");if(s.classList.contains("on"))document.getElementById("dInput").focus();else{document.getElementById("dInput").value="";dRender()}};
+document.getElementById("dInput").oninput=dRender;
+
+/* ================= زکوٰۃ ================= */
+function money(n){return n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function openZakat(){document.getElementById("ov-zakat").classList.add("on")}
+document.getElementById("zBack").onclick=()=>document.getElementById("ov-zakat").classList.remove("on");
+document.getElementById("zCalc").onclick=()=>{
+  const w=parseFloat(document.getElementById("zWealth").value),ns=parseFloat(document.getElementById("zNisab").value),r=document.getElementById("zres");
+  r.classList.add("on");
+  if(!(w>0)){r.innerHTML='<div class="zr-t">Please enter your total wealth</div><div class="zr-w" dir="rtl">براہِ کرم اپنا کل مال درج کریں</div>';return}
+  let h='<div class="zr-t">Your Zakat Amount</div><div class="zr-n">Rs '+money(w*0.025)+'</div><div class="zr-s">2.5% of Rs '+money(w)+'</div>';
+  if(ns>0&&w<ns)h='<div class="zr-t">Below Nisab</div><div class="zr-n">Rs 0.00</div><div class="zr-w">Your wealth is less than the nisab, so Zakat is not obligatory.<br><span dir="rtl">مال نصاب سے کم ہے، اس لیے زکوٰۃ لازم نہیں۔</span></div>';
+  else h+='<div class="zr-w">Zakat is due only on wealth held for one full lunar year (after debts).<br><span dir="rtl">زکوٰۃ اس مال پر ہے جس پر پورا قمری سال گزر چکا ہو (قرض نکال کر)۔</span></div>';
+  r.innerHTML=h;r.scrollIntoView({behavior:"smooth",block:"nearest"});
+};
+
+/* ================= تسبیح ================= */
+const Z=[["سُبْحَانَ اللَّهِ","Subhan Allah"],["الْحَمْدُ لِلَّهِ","Alhamdulillah"],["اللَّهُ أَكْبَرُ","Allahu Akbar"],
+["لَا إِلَٰهَ إِلَّا اللَّهُ","La ilaha illallah"],["أَسْتَغْفِرُ اللَّهَ","Astaghfirullah"],["لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ","La hawla wa la quwwata illa billah"],
+["سُبْحَانَ اللَّهِ وَبِحَمْدِهِ","Subhanallahi wa bihamdihi"],["سُبْحَانَ اللَّهِ الْعَظِيمِ","Subhanallahil Azim"],
+["اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ","Durood"],["حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ","Hasbunallahu wa ni'mal wakil"]];
+const T={zi:0,rep:0,round:1,target:25,seq:true};
+const NB=28,BC=["#2fa37f","#d94f86","#3f7fd0","#22b0d8","#8a52d6","#d9a02f"];
+const SV="http://www.w3.org/2000/svg",tsvg=document.getElementById("tsvg"),beads=[];
+(function build(){
+  // سنہری دھاگہ + پھندنا
+  const tas=document.createElementNS(SV,"g");
+  tas.innerHTML='<ellipse cx="180" cy="372" rx="9" ry="12" fill="#e7d49a"/><rect x="175" y="380" width="10" height="10" fill="#c9a24a"/>'+
+    '<path d="M168 392 L192 392 L204 436 L156 436Z" fill="#c9a24a"/><path d="M172 394 L172 434 M180 394 L180 434 M188 394 L188 434 M164 400 L164 434 M196 400 L196 434" stroke="#8a6a24" stroke-width="1.4"/>';
+  tsvg.appendChild(tas);
+  for(let i=0;i<NB;i++){
+    const t=i/NB*Math.PI*2,x=180+105*Math.sin(2*t),y=205+150*Math.cos(t)*-1+0;
+    const g=document.createElementNS(SV,"g");
+    g.innerHTML='<circle r="12"/><circle class="h" r="3.6" fill="#fff" opacity=".55" cx="-4" cy="-4"/>';
+    g.setAttribute("transform","translate("+x.toFixed(1)+" "+(y-0).toFixed(1)+")");
+    g.firstChild.setAttribute("fill",BC[i%BC.length]);
+    tsvg.appendChild(g);beads.push(g);
+  }
+  const tx=document.createElementNS(SV,"text");
+  tx.setAttribute("id","tcount");tx.setAttribute("x","180");tx.setAttribute("y","222");tx.setAttribute("text-anchor","middle");
+  tx.setAttribute("font-size","64");tx.setAttribute("font-weight","700");tx.setAttribute("font-family","'Courier New',monospace");
+  tx.setAttribute("fill","#9ad9e8");tx.setAttribute("stroke","#03323b");tx.setAttribute("stroke-width","1");
+  tsvg.appendChild(tx);
+  const i1=document.createElementNS(SV,"text"),i2=document.createElementNS(SV,"text");
+  [i1,i2].forEach((e,k)=>{e.setAttribute("x","180");e.setAttribute("y",String(252+k*22));e.setAttribute("text-anchor","middle");e.setAttribute("font-size","15");e.setAttribute("fill","#a9c5ca");e.setAttribute("font-family","system-ui,sans-serif");tsvg.appendChild(e)});
+  i1.id="tinfo1";i2.id="tinfo2";
+  const sel=document.getElementById("zSel");
+  sel.innerHTML='<option value="-1" disabled>Choose Zekr</option>'+Z.map((z,i)=>'<option value="'+i+'">'+z[1]+'</option>').join("");
+})();
+function tRender(){
+  const n=NB,act=T.rep%n;
+  document.getElementById("zAr").textContent=Z[T.zi][0];
+  document.getElementById("zSel").value=String(T.zi);
+  document.getElementById("zProg").style.width=(T.rep/T.target*100)+"%";
+  document.getElementById("tcount").textContent=String(T.rep).padStart(3,"0");
+  document.getElementById("tinfo1").textContent="Zekr "+(T.zi+1)+"/"+Z.length+" · Round "+T.round;
+  document.getElementById("tinfo2").textContent="Repetitions: "+T.rep+"/"+T.target;
+  for(let i=0;i<n;i++){
+    const g=beads[i],c=g.firstChild,on=(i===act&&T.rep>0);
+    c.setAttribute("r",on?"15":"12");c.setAttribute("fill",on?"#ffd34d":BC[i%BC.length]);
+  }
+}
+function vib(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
+function tTap(){
+  T.rep++;
+  if(T.rep>=T.target){
+    T.rep=0;vib(40);
+    if(T.seq){T.zi++;if(T.zi>=Z.length){T.zi=0;T.round++}}else T.round++;
+  }else vib(8);
+  tRender();
+}
+function tGoto(d){T.zi=(T.zi+d+Z.length)%Z.length;T.rep=0;tRender()}
+function openTasbih(){tRender();document.getElementById("ov-tasbih").classList.add("on")}
+document.getElementById("tBack").onclick=()=>document.getElementById("ov-tasbih").classList.remove("on");
+document.getElementById("zPrev").onclick=()=>tGoto(-1);
+document.getElementById("zNext").onclick=()=>tGoto(1);
+document.getElementById("zSel").onchange=e=>{T.zi=+e.target.value;T.rep=0;tRender()};
+document.getElementById("tUndo").onclick=()=>{if(T.rep>0){T.rep--;tRender()}};
+document.getElementById("tTarget").onchange=e=>{T.target=+e.target.value;T.rep=0;tRender()};
+document.getElementById("tSeq").onclick=e=>{T.seq=!T.seq;e.currentTarget.classList.toggle("on",T.seq)};
+document.getElementById("tReset").onclick=()=>{T.rep=0;T.round=1;T.zi=0;tRender()};
+tsvg.addEventListener("pointerdown",e=>{e.preventDefault();tTap()});
+document.querySelectorAll(".top-ic button[data-go]").forEach(b=>b.onclick=()=>openSec(b.dataset.go));
+
+/* ================= toast ================= */
+let toastT;function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("on"),3800)}
+
+/* ================= دعا کی تفصیل + پڑھ کر سنانا ================= */
+// [عربی, اردو ترجمہ, حوالہ] — ترتیب DUA کی فہرست کے مطابق
+const DUAD=[
+["اَللّٰهُمَّ بِاسْمِكَ أَمُوتُ وَأَحْيَا","اے اللہ! میں تیرے ہی نام سے مرتا (سوتا) ہوں اور جیتا (جاگتا) ہوں۔","صحیح بخاری: 6324"],
+["اَلْحَمْدُ لِلّٰهِ الَّذِي أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُورُ","تمام تعریفیں اللہ کے لیے ہیں جس نے ہمیں موت (نیند) کے بعد زندگی بخشی اور اسی کی طرف لوٹ کر جانا ہے۔","صحیح بخاری: 6312"],
+["بِسْمِ اللّٰهِ، اَللّٰهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْخُبُثِ وَالْخَبَائِثِ","اللہ کے نام سے، اے اللہ! میں ناپاک جنوں (نر اور مادہ) سے تیری پناہ مانگتا ہوں۔","صحیح بخاری: 142، صحیح مسلم: 375"],
+["غُفْرَانَكَ","اے اللہ! میں تیری بخشش مانگتا ہوں۔","سنن ابی داود: 30، جامع ترمذی: 7"],
+["اَللّٰهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ","اے اللہ! میرے لیے اپنی رحمت کے دروازے کھول دے۔","صحیح مسلم: 713"],
+["اَللّٰهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ","اے اللہ! میں تجھ سے تیرے فضل کا سوال کرتا ہوں۔","صحیح مسلم: 713"],
+["بِسْمِ اللّٰهِ","اللہ کے نام سے (کھانا شروع کرتا ہوں)۔ اگر شروع میں بھول جائے تو یاد آنے پر کہے: بِسْمِ اللّٰهِ أَوَّلَهُ وَآخِرَهُ","سنن ابی داود: 3767، جامع ترمذی: 1858"],
+["اَلْحَمْدُ لِلّٰهِ الَّذِي أَطْعَمَنَا وَسَقَانَا وَجَعَلَنَا مُسْلِمِينَ","تمام تعریفیں اللہ کے لیے ہیں جس نے ہمیں کھلایا، پلایا اور مسلمان بنایا۔","سنن ابی داود: 3850، جامع ترمذی: 3457"],
+["بِسْمِ اللّٰهِ وَلَجْنَا، وَبِسْمِ اللّٰهِ خَرَجْنَا، وَعَلَى رَبِّنَا تَوَكَّلْنَا","ہم اللہ کے نام سے داخل ہوئے، اسی کے نام سے نکلے اور اپنے رب ہی پر بھروسا کیا۔ (پھر گھر والوں کو سلام کرے)","سنن ابی داود: 5096"],
+["بِسْمِ اللّٰهِ، تَوَكَّلْتُ عَلَى اللّٰهِ، وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللّٰهِ","اللہ کے نام سے، میں نے اللہ پر بھروسا کیا، اور گناہ سے بچنے اور نیکی کرنے کی طاقت صرف اللہ ہی کی توفیق سے ہے۔","سنن ابی داود: 5095، جامع ترمذی: 3426"],
+["اَلْحَمْدُ لِلّٰهِ الَّذِي كَسَانِي هَذَا وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ","تمام تعریفیں اللہ کے لیے ہیں جس نے مجھے یہ لباس پہنایا اور عطا کیا، میری کسی طاقت اور قوت کے بغیر۔","سنن ابی داود: 4023، جامع ترمذی: 3458"],
+["اَللّٰهُمَّ أَنْتَ حَسَّنْتَ خَلْقِي فَحَسِّنْ خُلُقِي","اے اللہ! تو نے میری صورت اچھی بنائی، تو میرے اخلاق بھی اچھے بنا دے۔","مسند احمد"],
+["اَللّٰهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَذَا الْبِرَّ وَالتَّقْوَى، وَمِنَ الْعَمَلِ مَا تَرْضَى","اے اللہ! ہم اس سفر میں تجھ سے نیکی، تقویٰ اور ایسے عمل کا سوال کرتے ہیں جس سے تو راضی ہو۔","صحیح مسلم: 1342"],
+["اَللّٰهُ أَكْبَرُ، اَللّٰهُ أَكْبَرُ، اَللّٰهُ أَكْبَرُ، سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ، وَإِنَّا إِلَى رَبِّنَا لَمُنْقَلِبُونَ","اللہ سب سے بڑا ہے (تین بار)۔ پاک ہے وہ ذات جس نے اس سواری کو ہمارے قابو میں کر دیا، حالانکہ ہم اسے قابو کرنے والے نہ تھے، اور ہم اپنے رب ہی کی طرف لوٹنے والے ہیں۔","صحیح مسلم: 1342، سورۃ الزخرف: 13-14"],
+["اَللّٰهُمَّ رَبَّ السَّمَاوَاتِ السَّبْعِ وَمَا أَظْلَلْنَ، وَرَبَّ الْأَرَضِينَ السَّبْعِ وَمَا أَقْلَلْنَ، وَرَبَّ الشَّيَاطِينِ وَمَا أَضْلَلْنَ، وَرَبَّ الرِّيَاحِ وَمَا ذَرَيْنَ، أَسْأَلُكَ خَيْرَ هَذِهِ الْقَرْيَةِ وَخَيْرَ أَهْلِهَا وَخَيْرَ مَا فِيهَا، وَأَعُوذُ بِكَ مِنْ شَرِّهَا وَشَرِّ أَهْلِهَا وَشَرِّ مَا فِيهَا","اے اللہ! ساتوں آسمانوں اور ان کے سائے میں آنے والی چیزوں کے رب! ساتوں زمینوں اور ان کے اٹھائے ہوئے کے رب! شیاطین اور ان کے گمراہ کیے ہوؤں کے رب! ہواؤں اور ان کے اڑائے ہوئے کے رب! میں تجھ سے اس بستی، اس کے رہنے والوں اور اس میں جو کچھ ہے اس کی بھلائی مانگتا ہوں، اور اس کے شر سے تیری پناہ چاہتا ہوں۔","المستدرک للحاکم"],
+["اَللّٰهُمَّ لَا طَيْرَ إِلَّا طَيْرُكَ، وَلَا خَيْرَ إِلَّا خَيْرُكَ، وَلَا إِلٰهَ غَيْرُكَ","اے اللہ! نہیں ہے کوئی بدشگونی مگر تیری ہی بدشگونی (تیرے ہی حکم سے) اور نہیں ہے کوئی بھلائی مگر تیری ہی بھلائی (تیری ہی مشیّت سے) اور تیرے سوا کوئی معبود نہیں۔","مسند احمد: 220/2، وسلسلۃ الاحادیث الصحیحۃ: 54/3"],
+["لَا إِلٰهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ","تیرے سوا کوئی معبود نہیں، تو پاک ہے، بے شک میں ہی ظالموں میں سے تھا۔","سورۃ الانبیاء: 87، جامع ترمذی: 3505"],
+["اَللّٰهُمَّ إِنِّي أَسْتَخِيرُكَ بِعِلْمِكَ، وَأَسْتَقْدِرُكَ بِقُدْرَتِكَ، وَأَسْأَلُكَ مِنْ فَضْلِكَ الْعَظِيمِ، فَإِنَّكَ تَقْدِرُ وَلَا أَقْدِرُ، وَتَعْلَمُ وَلَا أَعْلَمُ، وَأَنْتَ عَلَّامُ الْغُيُوبِ. اَللّٰهُمَّ إِنْ كُنْتَ تَعْلَمُ أَنَّ هَذَا الْأَمْرَ خَيْرٌ لِي فِي دِينِي وَمَعَاشِي وَعَاقِبَةِ أَمْرِي فَاقْدُرْهُ لِي وَيَسِّرْهُ لِي ثُمَّ بَارِكْ لِي فِيهِ، وَإِنْ كُنْتَ تَعْلَمُ أَنَّ هَذَا الْأَمْرَ شَرٌّ لِي فِي دِينِي وَمَعَاشِي وَعَاقِبَةِ أَمْرِي فَاصْرِفْهُ عَنِّي وَاصْرِفْنِي عَنْهُ، وَاقْدُرْ لِيَ الْخَيْرَ حَيْثُ كَانَ ثُمَّ أَرْضِنِي بِهِ","اے اللہ! میں تیرے علم کے واسطے سے تجھ سے خیر مانگتا ہوں، تیری قدرت کے واسطے سے طاقت مانگتا ہوں اور تیرے عظیم فضل کا سوال کرتا ہوں، کیونکہ تو قدرت رکھتا ہے اور میں نہیں رکھتا، تو جانتا ہے اور میں نہیں جانتا، اور تو غیبوں کو خوب جاننے والا ہے۔ اے اللہ! اگر تو جانتا ہے کہ یہ کام (اپنی حاجت کا نام لے) میرے دین، میری معاش اور میرے انجامِ کار کے لیے بہتر ہے تو اسے میرے لیے مقدر کر دے، آسان کر دے اور اس میں برکت عطا فرما۔ اور اگر تو جانتا ہے کہ یہ میرے لیے برا ہے تو اسے مجھ سے پھیر دے اور مجھے اس سے پھیر دے، اور جہاں کہیں بھلائی ہو وہ میرے لیے مقدر کر دے، پھر مجھے اس پر راضی کر دے۔","صحیح بخاری: 1162"]
+];
+const P={i:0,mode:"ar",rate:1,playing:false,t0:0,est:6,frac:0,timer:null};
+function mmss(s){s=Math.max(0,Math.round(s));return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+function pStop(){try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}P.playing=false;clearInterval(P.timer);document.getElementById("pPlay").textContent="▶"}
+function pShow(){
+  const d=DUAD[P.i];
+  document.getElementById("dAr").textContent=d[0];document.getElementById("dUr").textContent=d[1];document.getElementById("dRef").textContent=d[2];
+  P.est=Math.max(4,Math.round((P.mode==="ar"?d[0]:d[1]).length/(9*P.rate)));
+  P.frac=0;document.getElementById("pFill").style.width="0";document.getElementById("pT").textContent="00:00";document.getElementById("pD").textContent=mmss(P.est);
+  document.querySelectorAll("#chips button").forEach((b,k)=>b.classList.toggle("on",k===P.i));
+  const on=document.querySelector("#chips button.on");if(on)on.scrollIntoView({inline:"center",block:"nearest"});
+  document.querySelector("#ov-dd .ddbody").scrollTop=0;
+}
+function pPlay(){
+  if(!("speechSynthesis" in window)){toast("اس براؤزر میں آواز سے پڑھنے کی سہولت موجود نہیں");return}
+  pStop();
+  const d=DUAD[P.i],ar=P.mode==="ar",text=ar?d[0]:d[1],u=new SpeechSynthesisUtterance(text);
+  u.lang=ar?"ar-SA":"ur-PK";u.rate=P.rate;
+  const vs=speechSynthesis.getVoices(),pre=ar?"ar":"ur",v=vs.find(x=>x.lang.toLowerCase().replace("_","-").startsWith(pre));
+  if(v)u.voice=v;else if(!ar){const h=vs.find(x=>x.lang.toLowerCase().startsWith("hi"));if(h)u.voice=h}
+  u.onstart=()=>{P.playing=true;P.t0=Date.now();document.getElementById("pPlay").textContent="⏸";
+    P.timer=setInterval(()=>{const s=(Date.now()-P.t0)/1000;document.getElementById("pT").textContent=mmss(s)},300)};
+  u.onboundary=e=>{P.frac=Math.min(1,e.charIndex/text.length);document.getElementById("pFill").style.width=(P.frac*100)+"%"};
+  u.onend=()=>{const s=(Date.now()-P.t0)/1000;pStop();document.getElementById("pFill").style.width="100%";document.getElementById("pD").textContent=mmss(s)};
+  u.onerror=()=>{pStop();toast(vs.some(x=>x.lang.toLowerCase().startsWith(pre))?"آواز چلانے میں مسئلہ آیا":"اس فون میں "+(ar?"عربی":"اردو")+" آواز انسٹال نہیں۔ فون کی سیٹنگز ← Text-to-speech میں زبان کا ڈیٹا شامل کریں")};
+  speechSynthesis.speak(u);
+}
+function openDD(i){
+  const c=document.getElementById("chips");
+  if(!c.firstChild){c.innerHTML=DUA.map((d,k)=>'<button data-k="'+k+'">'+d[0]+'</button>').join("");
+    c.onclick=e=>{const b=e.target.closest("button");if(b){pStop();P.i=+b.dataset.k;pShow()}}}
+  pStop();P.i=i;pShow();document.getElementById("ov-dd").classList.add("on");
+}
+document.getElementById("ddBack").onclick=()=>{pStop();document.getElementById("ov-dd").classList.remove("on")};
+document.getElementById("pPlay").onclick=()=>{P.playing?pStop():pPlay()};
+document.getElementById("pReplay").onclick=pPlay;
+document.getElementById("pPrev").onclick=()=>{pStop();P.i=(P.i+DUA.length-1)%DUA.length;pShow()};
+document.getElementById("pNext").onclick=()=>{pStop();P.i=(P.i+1)%DUA.length;pShow()};
+document.getElementById("pMode").onclick=e=>{pStop();P.mode=P.mode==="ar"?"ur":"ar";e.currentTarget.textContent=P.mode==="ar"?"عربی":"اردو";pShow()};
+document.getElementById("pSpd").onclick=e=>{const R=[0.75,1,1.25,1.5];P.rate=R[(R.indexOf(P.rate)+1)%R.length];e.currentTarget.textContent=P.rate+"x";pStop();pShow()};
+if("speechSynthesis" in window)speechSynthesis.onvoiceschanged=()=>{};
+
+/* ================= قبلہ نما ================= */
+const KAABA={lat:21.422487,lon:39.826206};
+const CITIES=[["Lahore",31.5204,74.3587],["Karachi",24.8607,67.0011],["Islamabad",33.6844,73.0479],["Rawalpindi",33.5651,73.0169],["Peshawar",34.0151,71.5249],
+["Quetta",30.1798,66.9750],["Multan",30.1575,71.4524],["Faisalabad",31.4504,73.1350],["Hyderabad",25.3960,68.3578],["Gujranwala",32.1877,74.1945],["Sialkot",32.4945,74.5229]];
+const Q={lat:null,lon:null,bearing:null,heading:null,watching:false,cam:null,aligned:false,raf:0};
+const rad=d=>d*Math.PI/180,deg=r=>r*180/Math.PI;
+function qBearing(la,lo){const p1=rad(la),p2=rad(KAABA.lat),dl=rad(KAABA.lon-lo);
+  return (deg(Math.atan2(Math.sin(dl)*Math.cos(p2),Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl)))+360)%360}
+function qDist(la,lo){const R=6371.0088,p1=rad(la),p2=rad(KAABA.lat),dp=p2-p1,dl=rad(KAABA.lon-lo);
+  const a=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;return 2*R*Math.asin(Math.sqrt(a))}
+const CARD=["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+const card16=b=>CARD[Math.round(b/22.5)%16];
+const qsvg=document.getElementById("qsvg");
+(function(){
+  let s='<circle cx="150" cy="150" r="146" fill="#0a5c3d"/><circle cx="150" cy="150" r="138" fill="#fff6d2" stroke="#d9ac2a" stroke-width="3"/>'+
+   '<g id="qdial"><circle cx="150" cy="150" r="118" fill="#efe8d3" stroke="#0a5c3d" stroke-width="6"/>';
+  for(let a=0;a<360;a+=5){const L=a%30===0?14:(a%10===0?9:5),r1=112,r2=112-L,x1=150+r1*Math.sin(rad(a)),y1=150-r1*Math.cos(rad(a)),x2=150+r2*Math.sin(rad(a)),y2=150-r2*Math.cos(rad(a));
+    s+='<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'" stroke="#3a3a3a" stroke-width="'+(a%30===0?2:1)+'"/>'}
+  [["N",0,"#b3261e"],["E",90,"#222"],["S",180,"#222"],["W",270,"#222"]].forEach(([t,a,c])=>{
+    const x=150+84*Math.sin(rad(a)),y=150-84*Math.cos(rad(a))+7;s+='<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" text-anchor="middle" font-size="22" font-weight="800" fill="'+c+'" font-family="system-ui,sans-serif">'+t+'</text>'});
+  s+='<g id="qmk"><line x1="150" y1="150" x2="150" y2="52" stroke="#0a5c3d" stroke-width="3" stroke-dasharray="5 4"/>'+
+     '<g transform="translate(150 34)"><circle r="19" fill="#fff6d2" stroke="#d9ac2a" stroke-width="2.5"/><rect x="-11" y="-11" width="22" height="22" rx="2" fill="#111"/><rect x="-11" y="-4" width="22" height="4" fill="#d9ac2a"/></g></g></g>'+
+     '<polygon points="150,2 140,22 160,22" fill="#2fbf6a" id="qptr"/>'+
+     '<circle cx="150" cy="150" r="30" fill="#fff6d2" stroke="#d9ac2a" stroke-width="3"/><rect x="136" y="136" width="28" height="28" rx="2" fill="#111"/><rect x="136" y="146" width="28" height="5" fill="#d9ac2a"/>';
+  qsvg.innerHTML=s;
+})();
+const qdial=document.getElementById("qdial"),qmk=document.getElementById("qmk");
+const qSel=document.getElementById("qSel");
+qSel.innerHTML='<option value="gps">📍 My location (GPS)</option>'+CITIES.map((c,i)=>'<option value="'+i+'">'+c[0]+', Pakistan</option>').join("");
+function qSetLoc(la,lo,name){
+  Q.lat=la;Q.lon=lo;Q.bearing=qBearing(la,lo);
+  document.getElementById("qCity").textContent=name||"Your location";
+  document.getElementById("qCoords").textContent=Math.abs(la).toFixed(4)+"° "+(la>=0?"N":"S")+", "+Math.abs(lo).toFixed(4)+"° "+(lo>=0?"E":"W");
+  document.getElementById("qDeg").textContent=Q.bearing.toFixed(1)+"° "+card16(Q.bearing);
+  document.getElementById("qMeta").textContent="Distance to Kaaba: "+Math.round(qDist(la,lo)).toLocaleString("en-US")+" km · کعبہ تک فاصلہ";
+  qmk.setAttribute("transform","rotate("+Q.bearing+" 150 150)");
+  qRender();
+}
+function qGPS(){
+  document.getElementById("qCity").textContent="Locating…";
+  if(!navigator.geolocation){toast("GPS دستیاب نہیں؛ نیچے سے اپنا شہر منتخب کریں");document.getElementById("qCity").textContent="Select your city";return}
+  navigator.geolocation.getCurrentPosition(p=>{
+    const la=p.coords.latitude,lo=p.coords.longitude;qSetLoc(la,lo,"Your location");
+    const ac=new AbortController(),to=setTimeout(()=>ac.abort(),5000);
+    fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude="+la+"&longitude="+lo+"&localityLanguage=en",{signal:ac.signal})
+      .then(r=>r.json()).then(j=>{clearTimeout(to);const n=[j.city||j.locality,j.countryName].filter(Boolean).join(", ");if(n&&Q.lat===la)document.getElementById("qCity").textContent=n}).catch(()=>{});
+  },()=>{document.getElementById("qCity").textContent="Select your city";toast("لوکیشن کی اجازت نہیں ملی؛ نیچے سے اپنا شہر منتخب کریں")},{enableHighAccuracy:true,timeout:12000,maximumAge:30000});
+}
+qSel.onchange=()=>{if(qSel.value==="gps")qGPS();else{const c=CITIES[+qSel.value];qSetLoc(c[1],c[2],c[0]+", Pakistan")}};
+
+function qRender(){
+  if(Q.raf)return;
+  Q.raf=requestAnimationFrame(()=>{
+    Q.raf=0;
+    const info=document.getElementById("qInfo"),ptr=document.getElementById("qptr");
+    if(Q.heading==null){qdial.setAttribute("transform","");info.className="qinfo";info.textContent=Q.bearing==null?"":"North up · قطب نما بند ہے";return}
+    qdial.setAttribute("transform","rotate("+(-Q.heading).toFixed(1)+" 150 150)");
+    if(Q.bearing==null)return;
+    const d=((Q.bearing-Q.heading+540)%360)-180,ok=Math.abs(d)<=4;
+    if(ok){info.className="qinfo ok";info.textContent="✓ You are facing Qibla · آپ قبلہ رخ ہیں";ptr.setAttribute("fill","#7dff9d");if(!Q.aligned)vib(30)}
+    else{info.className="qinfo";ptr.setAttribute("fill","#2fbf6a");info.textContent=(d>0?"Turn right → ":"← Turn left ")+Math.abs(d).toFixed(0)+"° · "+(d>0?"دائیں":"بائیں")+" مڑیں"}
+    Q.aligned=ok;
+  });
+}
+function cH(a,b,g){const x=rad(b),y=rad(g),z=rad(a),cY=Math.cos(y),cZ=Math.cos(z),sX=Math.sin(x),sY=Math.sin(y),sZ=Math.sin(z);
+  const Vx=-cZ*sY-sZ*sX*cY,Vy=-sZ*sY+cZ*sX*cY;let h=Math.atan2(Vx,Vy);if(h<0)h+=2*Math.PI;return deg(h)}
+let qLast=0;
+function qOrient(e){
+  let h=null;
+  if(typeof e.webkitCompassHeading==="number")h=e.webkitCompassHeading;
+  else if((e.absolute===true||e.type==="deviceorientationabsolute")&&e.alpha!=null)h=cH(e.alpha,e.beta,e.gamma);
+  if(h==null||isNaN(h))return;
+  const now=performance.now();if(now-qLast<33)return;qLast=now;
+  if(Q.heading==null)Q.heading=h;
+  else{const d=((h-Q.heading+540)%360)-180;Q.heading=(Q.heading+d*0.25+360)%360}
+  qRender();
+}
+function qStart(){
+  if(Q.watching)return;
+  const go=()=>{
+    Q.watching=true;
+    if("ondeviceorientationabsolute" in window)window.addEventListener("deviceorientationabsolute",qOrient,true);
+    else window.addEventListener("deviceorientation",qOrient,true);
+    document.getElementById("qEnable").style.display="none";
+    setTimeout(()=>{if(Q.heading==null){Q.watching=false;removeQ();document.getElementById("qEnable").style.display="";toast("قطب نما کا سینسر نہیں ملا۔ اس فون پر صرف اوپر دی گئی سمت (ڈگری) استعمال کریں")}},2500);
+  };
+  const DOE=window.DeviceOrientationEvent;
+  if(DOE&&typeof DOE.requestPermission==="function"){DOE.requestPermission().then(r=>{if(r==="granted")go();else toast("قطب نما کی اجازت نہیں ملی")}).catch(()=>toast("قطب نما شروع نہ ہو سکا"))}
+  else go();
+}
+function removeQ(){window.removeEventListener("deviceorientationabsolute",qOrient,true);window.removeEventListener("deviceorientation",qOrient,true);Q.watching=false}
+function qCamOff(){if(Q.cam){Q.cam.getTracks().forEach(t=>t.stop());Q.cam=null}const v=document.getElementById("qVideo");v.srcObject=null;document.getElementById("qc").classList.remove("cam");document.getElementById("qCamSw").classList.remove("on")}
+document.getElementById("qCamSw").onclick=async e=>{
+  const sw=e.currentTarget;
+  if(Q.cam){qCamOff();return}
+  try{
+    Q.cam=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+    const v=document.getElementById("qVideo");v.srcObject=Q.cam;await v.play();
+    document.getElementById("qc").classList.add("cam");sw.classList.add("on");
+  }catch(err){Q.cam=null;toast("کیمرے کی اجازت نہیں ملی یا کیمرا دستیاب نہیں")}
+};
+document.getElementById("qEnable").onclick=qStart;
+function openQibla(){
+  document.getElementById("ov-qibla").classList.add("on");
+  Q.heading=null;qRender();qStart();
+  if(Q.lat==null)qGPS();
+}
+document.getElementById("qBack").onclick=()=>{document.getElementById("ov-qibla").classList.remove("on");removeQ();qCamOff()};
+
+homeCards(document.getElementById("homeGrid"),HOME);
+homeCards(document.getElementById("myGrid"),MY);
+</script>
+</body>
+</html>
