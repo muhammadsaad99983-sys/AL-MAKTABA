@@ -10,7 +10,7 @@ permissions:
 
 env:
   # Ads switch: 'true' = ads on, 'false' = ads off (no ad code at all).
-  ENABLE_ADS: 'true'
+  ENABLE_ADS: 'false'
   # Google's official TEST AdMob App ID. Replace with your own App ID later.
   ADMOB_APP_ID: ca-app-pub-3940256099942544~3347511713
 
