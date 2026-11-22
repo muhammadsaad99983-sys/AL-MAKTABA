@@ -160,3 +160,36 @@ class Post {
         createdAt: _s(j, 'created_at'),
       );
 }
+
+class News {
+  final String id;
+  final String title;
+  final String body;
+  final String createdAt;
+
+  News({required this.id, required this.title, this.body = '', this.createdAt = ''});
+
+  Map<String, dynamic> toJson() =>
+      <String, dynamic>{'id': id, 'title': title, 'body': body, 'created_at': createdAt};
+
+  factory News.fromJson(Map<String, dynamic> j) =>
+      News(id: _s(j, 'id'), title: _s(j, 'title'), body: _s(j, 'body'), createdAt: _s(j, 'created_at'));
+}
+
+class FeedbackItem {
+  final String id;
+  final String kind;
+  final String message;
+  final String contact;
+  final String createdAt;
+
+  FeedbackItem({required this.id, required this.kind, required this.message, this.contact = '', this.createdAt = ''});
+
+  factory FeedbackItem.fromJson(Map<String, dynamic> j) => FeedbackItem(
+        id: _s(j, 'id'),
+        kind: _s(j, 'kind'),
+        message: _s(j, 'message'),
+        contact: _s(j, 'contact'),
+        createdAt: _s(j, 'created_at'),
+      );
+}

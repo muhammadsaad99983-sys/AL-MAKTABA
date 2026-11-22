@@ -1,5 +1,7 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'i18n.dart';
+import 'settings.dart';
 import 'api.dart';
 import 'common.dart';
 import 'models.dart';
@@ -64,17 +66,17 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: <Widget>[
-          const Text(
+          Text(
             'یہ حصہ صرف مکتبے کے مالک کے لیے ہے۔ لاگ اِن کے بعد آپ کتابیں اور تحریریں شامل یا حذف کر سکیں گے۔',
-            style: TextStyle(height: 1.9, color: Colors.black87),
+            style: TextStyle(height: 1.9, color: kText),
           ),
           const SizedBox(height: 18),
           TextField(
             controller: email,
             keyboardType: TextInputType.emailAddress,
             textDirection: TextDirection.ltr,
-            decoration: const InputDecoration(
-              labelText: 'ای میل',
+            decoration: InputDecoration(
+              labelText: tr('ای میل'),
               prefixIcon: Icon(Icons.email_outlined),
               border: OutlineInputBorder(),
             ),
@@ -85,7 +87,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
             obscureText: hide,
             textDirection: TextDirection.ltr,
             decoration: InputDecoration(
-              labelText: 'پاس ورڈ',
+              labelText: tr('پاس ورڈ'),
               prefixIcon: const Icon(Icons.lock_outline),
               border: const OutlineInputBorder(),
               suffixIcon: IconButton(
@@ -257,14 +259,14 @@ class _BookFormState extends State<BookForm> {
               if (p != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
-                  child: Text('${p.name}  (${formatSize(p.size)})', style: const TextStyle(color: kGreen, fontWeight: FontWeight.w600)),
+                  child: Text('${p.name}  (${formatSize(p.size)})', style: TextStyle(color: kGreen, fontWeight: FontWeight.w600)),
                 ),
               const SizedBox(height: 14),
             ],
             TextField(
               controller: title,
-              decoration: const InputDecoration(
-                labelText: 'کتاب کا نام',
+              decoration: InputDecoration(
+                labelText: tr('کتاب کا نام'),
                 prefixIcon: Icon(Icons.menu_book),
                 border: OutlineInputBorder(),
               ),
@@ -272,8 +274,8 @@ class _BookFormState extends State<BookForm> {
             const SizedBox(height: 12),
             TextField(
               controller: author,
-              decoration: const InputDecoration(
-                labelText: 'مصنف (اختیاری)',
+              decoration: InputDecoration(
+                labelText: tr('مصنف (اختیاری)'),
                 prefixIcon: Icon(Icons.person_outline),
                 border: OutlineInputBorder(),
               ),
@@ -282,8 +284,8 @@ class _BookFormState extends State<BookForm> {
             TextField(
               controller: desc,
               maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'کتاب کا تعارف (اختیاری)',
+              decoration: InputDecoration(
+                labelText: tr('کتاب کا تعارف (اختیاری)'),
                 alignLabelWithHint: true,
                 border: OutlineInputBorder(),
               ),
@@ -452,8 +454,8 @@ class _PostFormState extends State<PostForm> {
             const SizedBox(height: 14),
             TextField(
               controller: title,
-              decoration: const InputDecoration(
-                labelText: 'عنوان',
+              decoration: InputDecoration(
+                labelText: tr('عنوان'),
                 prefixIcon: Icon(Icons.title),
                 border: OutlineInputBorder(),
               ),
@@ -465,8 +467,8 @@ class _PostFormState extends State<PostForm> {
                   child: TextField(
                     controller: number,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'حدیث نمبر (اختیاری)',
+                    decoration: InputDecoration(
+                      labelText: tr('حدیث نمبر (اختیاری)'),
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -475,8 +477,8 @@ class _PostFormState extends State<PostForm> {
                 Expanded(
                   child: TextField(
                     controller: source,
-                    decoration: const InputDecoration(
-                      labelText: 'ماخذ / کتاب (اختیاری)',
+                    decoration: InputDecoration(
+                      labelText: tr('ماخذ / کتاب (اختیاری)'),
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -487,8 +489,8 @@ class _PostFormState extends State<PostForm> {
             TextField(
               controller: arabic,
               maxLines: 5,
-              decoration: const InputDecoration(
-                labelText: 'عربی متن (اختیاری)',
+              decoration: InputDecoration(
+                labelText: tr('عربی متن (اختیاری)'),
                 alignLabelWithHint: true,
                 border: OutlineInputBorder(),
               ),
@@ -497,8 +499,8 @@ class _PostFormState extends State<PostForm> {
             TextField(
               controller: body,
               maxLines: 10,
-              decoration: const InputDecoration(
-                labelText: 'ترجمہ / مضمون / مسئلہ',
+              decoration: InputDecoration(
+                labelText: tr('ترجمہ / مضمون / مسئلہ'),
                 alignLabelWithHint: true,
                 border: OutlineInputBorder(),
               ),
@@ -581,7 +583,7 @@ class CategoriesScreen extends StatelessWidget {
                           child: Icon(categoryIcon(c.id), color: kGreen),
                         ),
                         title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('$used اندراجات'),
+                        subtitle: Text(tf('%s اندراجات', <Object>[used])),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
@@ -601,7 +603,7 @@ class CategoriesScreen extends StatelessWidget {
                                   context,
                                   'زمرہ حذف کریں',
                                   used > 0
-                                      ? 'اس زمرے کی $used کتابیں/تحریریں حذف نہیں ہوں گی، وہ "متفرق" میں چلی جائیں گی۔ زمرہ حذف کریں؟'
+                                      ? tf('اس زمرے کی %s کتابیں/تحریریں حذف نہیں ہوں گی، وہ "متفرق" میں چلی جائیں گی۔ زمرہ حذف کریں؟', <Object>[used])
                                       : 'کیا یہ زمرہ حذف کریں؟',
                                 );
                                 if (ok && context.mounted) {

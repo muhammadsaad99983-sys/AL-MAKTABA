@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'i18n.dart';
+import 'settings.dart';
 import 'api.dart';
 import 'common.dart';
 import 'models.dart';
@@ -15,7 +17,7 @@ class CategoryScreen extends StatelessWidget {
     return AnimatedBuilder(
       animation: lib,
       builder: (BuildContext context, Widget? _) {
-        final Category? cat = lib.findCategory(categoryId);
+        final LibCategory? cat = lib.findCategory(categoryId);
         if (cat == null) {
           return Scaffold(appBar: appBar('زمرہ'), body: const EmptyState(Icons.folder_off, 'یہ زمرہ موجود نہیں'));
         }
@@ -32,8 +34,8 @@ class CategoryScreen extends StatelessWidget {
                 unselectedLabelColor: const Color(0xFFB7D9CE),
                 indicatorColor: kGold,
                 tabs: <Widget>[
-                  Tab(text: 'کتابیں (${books.length})'),
-                  Tab(text: 'تحریریں (${posts.length})'),
+                  Tab(text: tf('کتابیں (%s)', <Object>[books.length])),
+                  Tab(text: tf('تحریریں (%s)', <Object>[posts.length])),
                 ],
               ),
             ),

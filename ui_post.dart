@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'i18n.dart';
+import 'settings.dart';
 import 'package:flutter/services.dart';
 import 'api.dart';
 import 'common.dart';
@@ -6,6 +8,7 @@ import 'models.dart';
 import 'native.dart';
 import 'state.dart';
 import 'ui_admin.dart';
+import 'userdata.dart';
 
 String postAsText(Post p) {
   final StringBuffer b = StringBuffer();
@@ -19,14 +22,14 @@ String postAsText(Post p) {
     b.writeln(p.body);
   }
   final List<String> meta = <String>[];
-  if (p.source.isNotEmpty) meta.add('ماخذ: ${p.source}');
-  if (p.number.isNotEmpty) meta.add('نمبر: ${p.number}');
+  if (p.source.isNotEmpty) meta.add('${tr('ماخذ')}: ${p.source}');
+  if (p.number.isNotEmpty) meta.add('${tr('نمبر')}: ${p.number}');
   if (meta.isNotEmpty) {
     b.writeln();
-    b.writeln(meta.join('، '));
+    b.writeln(meta.join(', '));
   }
   b.writeln();
-  b.write('— المکتبۃ الآفتابیہ');
+  b.write('— ${tr('المکتبۃ الآفتابیہ')}');
   return b.toString();
 }
 
@@ -50,23 +53,29 @@ class PostDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: lib,
+      animation: Listenable.merge(<Listenable>[lib, ud]),
       builder: (BuildContext context, Widget? _) {
         final Post? p = lib.findPost(postId);
         if (p == null) {
           return Scaffold(appBar: appBar('تحریر'), body: const EmptyState(Icons.article_outlined, 'یہ تحریر اب موجود نہیں۔'));
         }
         final List<String> meta = <String>[];
-        if (p.source.isNotEmpty) meta.add('ماخذ: ${p.source}');
-        if (p.number.isNotEmpty) meta.add('نمبر: ${p.number}');
+        if (p.source.isNotEmpty) meta.add('${tr('ماخذ')}: ${p.source}');
+        if (p.number.isNotEmpty) meta.add('${tr('نمبر')}: ${p.number}');
 
         return Scaffold(
           appBar: appBar(
             kindLabel(p.kind),
             actions: <Widget>[
               IconButton(
+                icon: Icon(ud.isFavPost(p.id) ? Icons.favorite : Icons.favorite_border,
+                    color: ud.isFavPost(p.id) ? const Color(0xFFFF8A80) : null),
+                tooltip: tr('پسندیدہ'),
+                onPressed: () => ud.toggleFavPost(p.id),
+              ),
+              IconButton(
                 icon: const Icon(Icons.copy),
-                tooltip: 'کاپی',
+                tooltip: tr('کاپی'),
                 onPressed: () async {
                   await Clipboard.setData(ClipboardData(text: postAsText(p)));
                   if (context.mounted) snack(context, 'کاپی ہو گیا');
@@ -74,13 +83,13 @@ class PostDetail extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.share),
-                tooltip: 'شیئر',
+                tooltip: tr('شیئر'),
                 onPressed: () => Native.shareText(postAsText(p), 'شیئر کریں'),
               ),
               if (Api.isAdmin)
                 IconButton(
                   icon: const Icon(Icons.edit),
-                  tooltip: 'ترمیم',
+                  tooltip: tr('ترمیم'),
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute<void>(builder: (BuildContext _) => PostForm(post: p)),
@@ -89,7 +98,7 @@ class PostDetail extends StatelessWidget {
               if (Api.isAdmin)
                 IconButton(
                   icon: const Icon(Icons.delete),
-                  tooltip: 'حذف',
+                  tooltip: tr('حذف'),
                   onPressed: () => _delete(context, p),
                 ),
             ],
@@ -109,24 +118,24 @@ class PostDetail extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 p.title,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: kDark, height: 1.7),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: kDark, height: 1.7),
               ),
               if (meta.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
-                  child: Text(meta.join('   •   '), style: const TextStyle(color: Colors.black54)),
+                  child: Text(meta.join('   •   '), style: TextStyle(color: kMuted)),
                 ),
               const SizedBox(height: 12),
               if (p.arabic.isNotEmpty)
                 Card(
                   margin: const EdgeInsets.only(bottom: 12),
-                  color: const Color(0xFFFFFBEF),
+                  color: kWarm,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: SelectableText(
                       p.arabic,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 24, height: 2.1, color: Colors.black87),
+                      style: TextStyle(fontSize: 24, height: 2.1, color: kText),
                     ),
                   ),
                 ),

@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'i18n.dart';
+import 'settings.dart';
 import 'common.dart';
 import 'native.dart';
 import 'ui_book.dart' show safePdfName;
@@ -95,7 +97,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
           controller: t,
           autofocus: true,
           keyboardType: TextInputType.number,
-          decoration: InputDecoration(hintText: '1 سے $count تک'),
+          decoration: InputDecoration(hintText: tf('1 سے %s تک', <Object>[count])),
         ),
         actions: <Widget>[
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('منسوخ')),
@@ -153,13 +155,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.open_in_new),
-            tooltip: 'دوسری PDF ایپ میں کھولیں',
+            tooltip: tr('دوسری PDF ایپ میں کھولیں'),
             onPressed: _openExternal,
           ),
           if (!loading && error == null)
             IconButton(
               icon: Icon(vertical ? Icons.swap_horiz : Icons.swap_vert),
-              tooltip: vertical ? 'افقی ورق گردانی' : 'اوپر نیچے ورق گردانی',
+              tooltip: tr(vertical ? 'افقی ورق گردانی' : 'اوپر نیچے ورق گردانی'),
               onPressed: _toggleDirection,
             ),
         ],
@@ -248,7 +250,7 @@ class _PdfPageState extends State<_PdfPage> {
       }
       if (mounted) setState(() => page = r);
     } catch (e) {
-      if (mounted) setState(() => err = 'یہ صفحہ نہیں کھل سکا\n$e');
+      if (mounted) setState(() => err = '${tr('یہ صفحہ نہیں کھل سکا')}\n$e');
     }
   }
 
@@ -283,7 +285,7 @@ class _PdfPageState extends State<_PdfPage> {
     if (pg == null) {
       return Center(
         child: err != null
-            ? Text(err!, style: const TextStyle(color: Colors.black54))
+            ? Text(err!, style: TextStyle(color: kMuted))
             : const CircularProgressIndicator(),
       );
     }
@@ -308,14 +310,14 @@ class _PdfPageState extends State<_PdfPage> {
               ),
             ),
             if (pg.blank)
-              const Positioned(
+              Positioned(
                 bottom: 14,
                 left: 16,
                 right: 16,
                 child: Text(
                   'یہ صفحہ خالی بنا ہے۔ اوپر دائیں "دوسری PDF ایپ میں کھولیں" کا بٹن دبائیں۔',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.black54, height: 1.7),
+                  style: TextStyle(color: kMuted, height: 1.7),
                 ),
               ),
           ],

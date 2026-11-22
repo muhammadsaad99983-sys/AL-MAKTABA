@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'i18n.dart';
+import 'settings.dart';
 import 'api.dart';
 import 'common.dart';
 import 'models.dart';
@@ -6,6 +8,7 @@ import 'native.dart';
 import 'state.dart';
 import 'ui_admin.dart';
 import 'ui_reader.dart';
+import 'userdata.dart';
 
 String safePdfName(String title) {
   String n = title.replaceAll(RegExp(r'[\\/:*?"<>|\r\n]'), '_').trim();
@@ -79,7 +82,7 @@ class _BookDetailState extends State<BookDetail> {
     if (path == null || !mounted) return;
     try {
       final String shown = await Native.saveToDownloads(path, safePdfName(b.title));
-      if (mounted) snack(context, 'محفوظ ہو گئی: $shown');
+      if (mounted) snack(context, '${tr('محفوظ ہو گئی')}: $shown');
     } catch (_) {
       if (mounted) snack(context, 'فون میں محفوظ نہیں ہو سکی');
     }
@@ -119,7 +122,7 @@ class _BookDetailState extends State<BookDetail> {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: lib,
+      animation: Listenable.merge(<Listenable>[lib, ud]),
       builder: (BuildContext context, Widget? _) {
         final Book? b = lib.findBook(widget.bookId);
         if (b == null) {
@@ -133,14 +136,20 @@ class _BookDetailState extends State<BookDetail> {
             'کتاب کی تفصیل',
             actions: <Widget>[
               IconButton(
+                icon: Icon(ud.isFavBook(b.id) ? Icons.favorite : Icons.favorite_border,
+                    color: ud.isFavBook(b.id) ? const Color(0xFFFF8A80) : null),
+                tooltip: tr('پسندیدہ'),
+                onPressed: () => ud.toggleFavBook(b.id),
+              ),
+              IconButton(
                 icon: const Icon(Icons.share),
-                tooltip: 'شیئر',
+                tooltip: tr('شیئر'),
                 onPressed: () => Native.shareText('${b.title}\n${Api.publicUrl(b.filePath)}', 'کتاب شیئر کریں'),
               ),
               if (Api.isAdmin)
                 IconButton(
                   icon: const Icon(Icons.edit),
-                  tooltip: 'ترمیم',
+                  tooltip: tr('ترمیم'),
                   onPressed: busy
                       ? null
                       : () => Navigator.push(
@@ -151,7 +160,7 @@ class _BookDetailState extends State<BookDetail> {
               if (Api.isAdmin)
                 IconButton(
                   icon: const Icon(Icons.delete),
-                  tooltip: 'حذف',
+                  tooltip: tr('حذف'),
                   onPressed: busy ? null : () => _delete(b),
                 ),
             ],
@@ -175,7 +184,7 @@ class _BookDetailState extends State<BookDetail> {
                       width: 62,
                       height: 78,
                       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                      child: const Icon(Icons.picture_as_pdf, color: kGreen, size: 34),
+                      child: Icon(Icons.picture_as_pdf, color: kGreen, size: 34),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -202,7 +211,7 @@ class _BookDetailState extends State<BookDetail> {
                   Pill(lib.categoryName(b.categoryId), kGreen),
                   if (size.isNotEmpty) Pill(size, kGold),
                   if (b.createdAt.isNotEmpty) Pill(formatDate(b.createdAt), Colors.blueGrey),
-                  if (have) const Pill('فون میں محفوظ', kGreen),
+                  if (have) Pill('فون میں محفوظ', kGreen),
                 ],
               ),
               if (b.description.isNotEmpty) ...<Widget>[
@@ -217,13 +226,13 @@ class _BookDetailState extends State<BookDetail> {
               ],
               const SizedBox(height: 18),
               if (busy) ...<Widget>[
-                Text(busyText, style: const TextStyle(color: Colors.black54)),
+                Text(busyText, style: TextStyle(color: kMuted)),
                 const SizedBox(height: 6),
                 LinearProgressIndicator(value: progress),
                 if (progress != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: Text('${(progress! * 100).round()}%', style: const TextStyle(color: Colors.black54)),
+                    child: Text('${(progress! * 100).round()}%', style: TextStyle(color: kMuted)),
                   ),
               ] else ...<Widget>[
                 FilledButton.icon(

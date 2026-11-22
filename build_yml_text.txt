@@ -1,0 +1,154 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  # Ads switch: 'true' = ads on, 'false' = ads off (no ad code at all).
+  ENABLE_ADS: 'true'
+  # Google's official TEST AdMob App ID. Replace with your own App ID later.
+  ADMOB_APP_ID: ca-app-pub-3940256099942544~3347511713
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Prepare Android project
+        run: |
+          set -e
+          flutter create --platforms=android --org com.aftabia --project-name maktaba /tmp/gen
+          rm -rf android
+          cp -r /tmp/gen/android ./android
+
+          mkdir -p lib
+          for f in *.dart; do
+            if [ -e "$f" ]; then mv "$f" lib/; fi
+          done
+          sed -i 's/\bCategory\b/LibCategory/g' lib/*.dart
+
+          RES=android/app/src/main/res
+          rm -rf "$RES"/mipmap-anydpi*
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            mkdir -p "$RES/mipmap-$d"
+            cp "ic_$d.png" "$RES/mipmap-$d/ic_launcher.png"
+          done
+
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          sed -i 's/android:label="[^"]*"/android:label="المکتبۃ الآفتابیہ"/' "$MANIFEST"
+          sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application#' "$MANIFEST"
+          grep -q 'android.permission.INTERNET' "$MANIFEST" || { echo "ERROR: INTERNET permission was not added"; exit 1; }
+
+          # Lets other apps (WhatsApp, Files, browser) share a PDF to this app.
+          python3 - "$MANIFEST" <<'PYEOF'
+          import sys
+          p = sys.argv[1]
+          s = open(p, encoding='utf8').read()
+          parts = []
+          for act in ('android.intent.action.SEND', 'android.intent.action.SEND_MULTIPLE'):
+              parts.append('<intent-filter><action android:name="' + act + '"/>'
+                           '<category android:name="android.intent.category.DEFAULT"/>'
+                           '<data android:mimeType="application/pdf"/></intent-filter>')
+          s = s.replace('</activity>', '\n        '.join(parts) + '\n        </activity>', 1)
+          open(p, 'w', encoding='utf8').write(s)
+          PYEOF
+          grep -q 'android.intent.action.SEND_MULTIPLE' "$MANIFEST" || { echo "ERROR: share filter was not added"; exit 1; }
+
+          if [ "$ENABLE_ADS" = "true" ]; then
+            sed -i "0,/<activity/s#<activity#<meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"$ADMOB_APP_ID\"/>\n        <activity#" "$MANIFEST"
+            grep -q 'com.google.android.gms.ads.APPLICATION_ID' "$MANIFEST" || { echo "ERROR: AdMob App ID was not added"; exit 1; }
+          else
+            echo "Ads are OFF: using an empty ads.dart"
+            cat > lib/ads.dart <<'EOT'
+          import 'package:flutter/material.dart';
+
+          class AdsConfig {
+            static const bool enabled = false;
+            static const String bannerUnitId = '';
+          }
+
+          class AdBanner extends StatelessWidget {
+            const AdBanner({super.key});
+
+            @override
+            Widget build(BuildContext context) => const SizedBox.shrink();
+          }
+          EOT
+          fi
+
+          MA=$(find android/app/src/main -name MainActivity.kt | head -n 1)
+          if [ -z "$MA" ]; then
+            echo "ERROR: MainActivity.kt was not found"
+            exit 1
+          fi
+          PKG=$(grep -m1 '^package ' "$MA")
+          { echo "$PKG"; echo; cat main_activity_body.kt.txt; } > "$MA"
+
+          echo "--- project ready ---"
+          ls lib
+          cat "$MANIFEST"
+
+      - name: Get packages
+        run: |
+          if [ "$ENABLE_ADS" = "true" ]; then
+            flutter pub add google_mobile_ads
+          fi
+          flutter pub get
+
+      - name: Turn off the Android lint check (it crashes on a plugin)
+        run: |
+          mkdir -p "$HOME/.gradle/init.d"
+          cat > "$HOME/.gradle/init.d/no-lint.gradle" <<'EOT'
+          allprojects {
+            tasks.configureEach { t ->
+              if (t.name.startsWith('lintVital')) {
+                t.enabled = false
+              }
+            }
+          }
+          EOT
+          cat "$HOME/.gradle/init.d/no-lint.gradle"
+
+      - name: Build release APK
+        run: |
+          if [ "$ENABLE_ADS" = "true" ]; then
+            # The ads package crashes at start-up when R8 shrinking is on, so shrinking is off.
+            flutter build apk --release --no-shrink
+          else
+            flutter build apk --release
+          fi
+
+      - name: Rename APK
+        run: cp build/app/outputs/flutter-apk/app-release.apk maktaba_aftabia.apk
+
+      - name: Save APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: maktaba-apk
+          path: maktaba_aftabia.apk
+
+      - name: Publish APK in Releases
+        continue-on-error: true
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Al-Maktaba Al-Aftabia build ${{ github.run_number }}
+          files: maktaba_aftabia.apk

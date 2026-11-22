@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'i18n.dart';
+import 'settings.dart';
 import 'api.dart';
 import 'common.dart';
 import 'models.dart';
@@ -39,7 +41,7 @@ class _BooksTabState extends State<BooksTab> {
         final List<MapEntry<String, String>> langItems = kLanguages.entries
             .map((MapEntry<String, String> e) => MapEntry<String, String>(
                   e.key,
-                  '${e.value} (${lib.books.where((Book b) => b.language == e.key).length})',
+                  '${tr(e.value)} (${lib.books.where((Book b) => b.language == e.key).length})',
                 ))
             .toList();
 
@@ -49,7 +51,7 @@ class _BooksTabState extends State<BooksTab> {
         ];
 
         return Scaffold(
-          appBar: appBar('${languageLabel(lang)} کتابیں (${list.length})'),
+          appBar: appBar(tf('%s کتابیں (%s)', <Object>[tr(languageLabel(lang)), list.length])),
           floatingActionButton: Api.isAdmin
               ? FloatingActionButton.extended(
                   onPressed: () => Navigator.push(
@@ -69,10 +71,10 @@ class _BooksTabState extends State<BooksTab> {
                 child: TextField(
                   onChanged: (String v) => setState(() => query = v),
                   decoration: InputDecoration(
-                    hintText: 'کتابوں میں تلاش کریں',
+                    hintText: tr('کتابوں میں تلاش کریں'),
                     prefixIcon: const Icon(Icons.search),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: kCardBg,
                     contentPadding: EdgeInsets.zero,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -126,6 +128,7 @@ class PostsTab extends StatefulWidget {
 
 class _PostsTabState extends State<PostsTab> {
   String kind = '';
+  String catId = '';
   String query = '';
 
   @override
@@ -136,6 +139,7 @@ class _PostsTabState extends State<PostsTab> {
         final List<String> tokens = tokensOf(query);
         final List<Post> list = lib.posts.where((Post p) {
           if (kind.isNotEmpty && p.kind != kind) return false;
+          if (catId.isNotEmpty && p.categoryId != catId) return false;
           if (tokens.isEmpty) return true;
           return containsAll(normalizeText('${p.title} ${p.arabic} ${p.body} ${p.source} ${p.number}'), tokens);
         }).toList();
@@ -145,8 +149,13 @@ class _PostsTabState extends State<PostsTab> {
           ...kKinds.entries,
         ];
 
+        final List<MapEntry<String, String>> catFilters = <MapEntry<String, String>>[
+          const MapEntry<String, String>('', 'تمام زمرے'),
+          ...lib.categories.map((LibCategory c) => MapEntry<String, String>(c.id, c.name)),
+        ];
+
         return Scaffold(
-          appBar: appBar('تحریریں (${lib.posts.length})'),
+          appBar: appBar(tf('تحریریں (%s)', <Object>[lib.posts.length])),
           floatingActionButton: Api.isAdmin
               ? FloatingActionButton.extended(
                   onPressed: () => Navigator.push(
@@ -164,10 +173,10 @@ class _PostsTabState extends State<PostsTab> {
                 child: TextField(
                   onChanged: (String v) => setState(() => query = v),
                   decoration: InputDecoration(
-                    hintText: 'تحریروں میں تلاش کریں',
+                    hintText: tr('تحریروں میں تلاش کریں'),
                     prefixIcon: const Icon(Icons.search),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: kCardBg,
                     contentPadding: EdgeInsets.zero,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -177,6 +186,8 @@ class _PostsTabState extends State<PostsTab> {
                 ),
               ),
               ChipsRow(items: filters, selected: kind, onSelected: (String k) => setState(() => kind = k)),
+              const SizedBox(height: 6),
+              ChipsRow(items: catFilters, selected: catId, onSelected: (String c) => setState(() => catId = c)),
               const SizedBox(height: 6),
               Expanded(
                 child: RefreshIndicator(

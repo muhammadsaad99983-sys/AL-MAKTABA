@@ -1,13 +1,27 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'i18n.dart';
+import 'settings.dart';
 import 'models.dart';
+import 'settings.dart';
 import 'state.dart';
 
-const Color kGreen = Color(0xFF0B5D4B);
-const Color kDark = Color(0xFF073B30);
 const Color kGold = Color(0xFFC8962A);
-const Color kBg = Color(0xFFF6F4EC);
-const Color kLight = Color(0xFFE3F1EC);
 const Color kRed = Color(0xFFC62828);
+
+// Colours that change between light and dark mode.
+bool get _dk => settings.dark;
+Color get kGreen => _dk ? const Color(0xFF4DB59A) : const Color(0xFF0B5D4B);
+Color get kBar => _dk ? const Color(0xFF0E3B31) : const Color(0xFF0B5D4B);
+Color get kDark => _dk ? const Color(0xFFE6F0EC) : const Color(0xFF073B30);
+Color get kBg => _dk ? const Color(0xFF0F1B18) : const Color(0xFFF6F4EC);
+Color get kLight => _dk ? const Color(0xFF1D3A33) : const Color(0xFFE3F1EC);
+Color get kCardBg => _dk ? const Color(0xFF172622) : const Color(0xFFFFFFFF);
+Color get kMuted => _dk ? const Color(0xFFB4C2BD) : const Color(0xFF616161);
+Color get kFaint => _dk ? const Color(0xFF5E6F69) : const Color(0xFFBDBDBD);
+Color get kText => _dk ? const Color(0xFFE9EEEC) : const Color(0xFF212121);
+Color get kWarm => _dk ? const Color(0xFF2B2A1C) : kWarm;
+Color get kNoteBg => _dk ? const Color(0xFF3A2E1A) : kNoteBg;
+IconData get kChevron => settings.rtl ? Icons.chevron_left : Icons.chevron_right;
 
 void snack(BuildContext context, String msg) {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
@@ -47,7 +61,7 @@ Future<String?> promptText(BuildContext context, String title, {String initial =
 PreferredSizeWidget appBar(String title, {List<Widget>? actions, PreferredSizeWidget? bottom}) {
   return AppBar(
     title: Text(title),
-    backgroundColor: kGreen,
+    backgroundColor: kBar,
     foregroundColor: Colors.white,
     actions: actions,
     bottom: bottom,
@@ -114,12 +128,12 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(icon, size: 60, color: Colors.black26),
+            Icon(icon, size: 60, color: kFaint),
             const SizedBox(height: 12),
             Text(
               text,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.black54, fontSize: 15, height: 1.7),
+              style: TextStyle(color: kMuted, fontSize: 15, height: 1.7),
             ),
           ],
         ),
@@ -142,7 +156,7 @@ class SectionTitle extends StatelessWidget {
           Container(width: 4, height: 20, color: kGold),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(text, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: kDark)),
+            child: Text(text, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: kDark)),
           ),
           if (onMore != null) TextButton(onPressed: onMore, child: const Text('سب دیکھیں')),
         ],
@@ -162,7 +176,7 @@ class NoticeBanner extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF3E0),
+        color: kNoteBg,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -205,7 +219,7 @@ class ChipsRow extends StatelessWidget {
   }
 }
 
-/// Category choice used in the admin forms.
+/// LibCategory choice used in the admin forms.
 class CategoryPicker extends StatelessWidget {
   final String selected;
   final ValueChanged<String> onChanged;
@@ -217,7 +231,7 @@ class CategoryPicker extends StatelessWidget {
       spacing: 8,
       runSpacing: 4,
       children: <Widget>[
-        ...lib.categories.map((Category c) => ChoiceChip(
+        ...lib.categories.map((LibCategory c) => ChoiceChip(
               label: Text(c.name),
               selected: selected == c.id,
               onSelected: (bool _) => onChanged(c.id),
@@ -251,7 +265,7 @@ class BookTile extends StatelessWidget {
           width: 44,
           height: 54,
           decoration: BoxDecoration(color: kLight, borderRadius: BorderRadius.circular(8)),
-          child: const Icon(Icons.picture_as_pdf, color: kGreen),
+          child: Icon(Icons.picture_as_pdf, color: kGreen),
         ),
         title: Text(
           book.title,
@@ -261,8 +275,8 @@ class BookTile extends StatelessWidget {
         ),
         subtitle: Text(parts.join('  •  '), maxLines: 2, overflow: TextOverflow.ellipsis),
         trailing: lib.isDownloaded(book.id)
-            ? const Icon(Icons.download_done, color: kGreen)
-            : const Icon(Icons.chevron_left),
+            ? Icon(Icons.download_done, color: kGreen)
+            : Icon(kChevron),
         onTap: onTap,
       ),
     );
@@ -278,7 +292,7 @@ class PostTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<String> meta = <String>[];
     if (post.source.isNotEmpty) meta.add(post.source);
-    if (post.number.isNotEmpty) meta.add('نمبر ${post.number}');
+    if (post.number.isNotEmpty) meta.add('${tr('نمبر')} ${post.number}');
     final String preview = snippet(post.body.isNotEmpty ? post.body : post.arabic, 90);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -300,7 +314,7 @@ class PostTile extends StatelessWidget {
                         meta.join('  •  '),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.black54, fontSize: 12),
+                        style: TextStyle(color: kMuted, fontSize: 12),
                       ),
                     ),
                 ],
@@ -319,7 +333,7 @@ class PostTile extends StatelessWidget {
                     preview,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.black54, height: 1.6),
+                    style: TextStyle(color: kMuted, height: 1.6),
                   ),
                 ),
             ],

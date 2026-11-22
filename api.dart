@@ -168,7 +168,7 @@ class Api {
       body: <String, dynamic>{'email': email.trim(), 'password': password},
     );
     if (r.status == 400 || r.status == 401 || r.status == 422) {
-      throw ApiException('ای میل یا پاس ورڈ درست نہیں');
+      throw ApiException('ای میل یا پاس ورڈ درست نہیں [${r.status}] ${r.body}');
     }
     if (r.status < 200 || r.status >= 300) {
       throw ApiException(_msg(r));
@@ -260,6 +260,31 @@ class Api {
       headers: <String, String>{'Prefer': 'return=minimal'},
     );
     _check(r);
+  }
+
+  /// Insert that anybody (no login) may do, e.g. sending feedback.
+  static Future<void> insertPublic(String table, Map<String, dynamic> row) async {
+    final _Resp r = await _raw(
+      'POST',
+      '/rest/v1/$table',
+      body: row,
+      headers: <String, String>{'Prefer': 'return=minimal'},
+    );
+    _check(r);
+  }
+
+  /// Reading a table that only the owner may read.
+  static Future<List<dynamic>> getListAuth(String table) async {
+    final String token = await _token();
+    final _Resp r = await _raw(
+      'GET',
+      '/rest/v1/$table',
+      query: <String, String>{'select': '*', 'order': 'created_at.desc', 'limit': '500'},
+      token: token,
+    );
+    _check(r);
+    final dynamic j = r.json;
+    return j is List ? j : <dynamic>[];
   }
 
   static Future<void> update(String table, String id, Map<String, dynamic> row) async {

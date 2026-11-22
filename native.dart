@@ -32,6 +32,34 @@ class Native {
     return PickedPdf((r['path'] ?? '').toString(), (r['name'] ?? 'book.pdf').toString(), size);
   }
 
+  static List<PickedPdf> _list(List<dynamic>? raw) {
+    final List<PickedPdf> out = <PickedPdf>[];
+    if (raw == null) return out;
+    for (final dynamic e in raw) {
+      if (e is Map) {
+        final int size = (e['size'] is num) ? (e['size'] as num).toInt() : 0;
+        out.add(PickedPdf((e['path'] ?? '').toString(), (e['name'] ?? 'book.pdf').toString(), size));
+      }
+    }
+    return out;
+  }
+
+  /// Several PDF files at once.
+  static Future<List<PickedPdf>> pickPdfs() async {
+    final List<dynamic>? r = await _ch.invokeMethod<List<dynamic>>('pickPdfs');
+    return _list(r);
+  }
+
+  /// PDF files that another app shared to this app (Share > Al-Maktaba).
+  static Future<List<PickedPdf>> takeShared() async {
+    try {
+      final List<dynamic>? r = await _ch.invokeMethod<List<dynamic>>('takeShared');
+      return _list(r);
+    } catch (_) {
+      return <PickedPdf>[];
+    }
+  }
+
   /// Returns [pageCount, firstPageWidth, firstPageHeight].
   static Future<List<dynamic>> pdfOpen(String path) async {
     final List<dynamic>? r = await _ch.invokeMethod<List<dynamic>>('pdfOpen', <String, dynamic>{'path': path});

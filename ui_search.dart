@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'i18n.dart';
+import 'settings.dart';
 import 'common.dart';
 import 'models.dart';
 import 'nav.dart';
@@ -6,7 +8,8 @@ import 'search_util.dart';
 import 'state.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final String initialMode;
+  const SearchScreen({super.key, this.initialMode = 'all'});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -15,7 +18,7 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController ctl = TextEditingController();
   String query = '';
-  String mode = 'all'; // all | books | hadith | posts
+  late String mode = widget.initialMode; // all | books | hadith | posts
 
   @override
   void dispose() {
@@ -58,7 +61,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: kGreen,
+        backgroundColor: kBar,
         foregroundColor: Colors.white,
         titleSpacing: 0,
         title: TextField(
@@ -67,8 +70,8 @@ class _SearchScreenState extends State<SearchScreen> {
           style: const TextStyle(color: Colors.white, fontSize: 17),
           cursorColor: Colors.white,
           onChanged: (String v) => setState(() => query = v),
-          decoration: const InputDecoration(
-            hintText: 'کتاب، حدیث نمبر یا کوئی لفظ لکھیں',
+          decoration: InputDecoration(
+            hintText: tr('کتاب، حدیث نمبر یا کوئی لفظ لکھیں'),
             hintStyle: TextStyle(color: Color(0xFFB7D9CE)),
             border: InputBorder.none,
           ),
@@ -112,7 +115,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         children: <Widget>[
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-                            child: Text('$total نتائج', style: const TextStyle(color: Colors.black54)),
+                            child: Text(tf('%s نتائج', <Object>[total]), style: TextStyle(color: kMuted)),
                           ),
                           if (bookHits.isNotEmpty) ...<Widget>[
                             const Padding(

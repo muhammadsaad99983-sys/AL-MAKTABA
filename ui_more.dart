@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'i18n.dart';
+import 'settings.dart';
 import 'api.dart';
 import 'common.dart';
 import 'config.dart';
@@ -6,6 +8,10 @@ import 'native.dart';
 import 'state.dart';
 import 'texts.dart';
 import 'ui_admin.dart';
+import 'ui_feedback.dart';
+import 'ui_import.dart';
+import 'ui_lists.dart';
+import 'ui_settings.dart';
 import 'ui_reader.dart';
 
 class MoreTab extends StatelessWidget {
@@ -28,13 +34,43 @@ class MoreTab extends StatelessWidget {
               _Tile(
                 icon: Icons.download_done,
                 title: 'میری ڈاؤنلوڈ شدہ کتابیں',
-                subtitle: '${lib.downloads.length} کتابیں، بغیر انٹرنیٹ پڑھیں',
+                subtitle: tf('%s کتابیں، بغیر انٹرنیٹ پڑھیں', <Object>[lib.downloads.length]),
                 onTap: () => _push(context, const DownloadsScreen()),
+              ),
+              _Tile(
+                icon: Icons.favorite_border,
+                title: 'پسندیدہ',
+                subtitle: '',
+                onTap: () => _push(context, const ListsScreen(recent: false)),
+              ),
+              _Tile(
+                icon: Icons.history,
+                title: 'حالیہ مطالعہ',
+                subtitle: '',
+                onTap: () => _push(context, const ListsScreen(recent: true)),
+              ),
+              _Tile(
+                icon: Icons.notifications_none,
+                title: 'اعلانات',
+                subtitle: '',
+                onTap: () => _push(context, const NewsScreen()),
+              ),
+              _Tile(
+                icon: Icons.feedback_outlined,
+                title: 'شکایت / تجویز',
+                subtitle: 'ہمیں اپنی رائے بھیجیں',
+                onTap: () => _push(context, const FeedbackScreen()),
+              ),
+              _Tile(
+                icon: Icons.settings_outlined,
+                title: 'سیٹنگز',
+                subtitle: 'زبان، ڈارک موڈ، لکھائی کا سائز',
+                onTap: () => _push(context, const SettingsScreen()),
               ),
               if (Api.isAdmin) ...<Widget>[
                 const SectionTitle('ناظم کا پینل'),
                 Card(
-                  color: const Color(0xFFFFFBEF),
+                  color: kWarm,
                   margin: const EdgeInsets.only(bottom: 6),
                   child: Padding(
                     padding: const EdgeInsets.all(12),
@@ -44,7 +80,7 @@ class MoreTab extends StatelessWidget {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'آپ ناظم کے طور پر لاگ اِن ہیں\n${Api.adminEmail}',
+                            '${tr('آپ ناظم کے طور پر لاگ اِن ہیں')}\n${Api.adminEmail}',
                             style: const TextStyle(height: 1.6),
                           ),
                         ),
@@ -57,6 +93,36 @@ class MoreTab extends StatelessWidget {
                   title: 'نئی کتاب (PDF) شامل کریں',
                   subtitle: 'فون سے PDF منتخب کر کے اپلوڈ کریں',
                   onTap: () => _push(context, const BookForm()),
+                ),
+                _Tile(
+                  icon: Icons.library_add,
+                  title: 'کئی PDF ایک ساتھ شامل کریں',
+                  subtitle: 'فون سے ایک بار میں بہت سی کتابیں منتخب کریں',
+                  onTap: () => startPickMany(context),
+                ),
+                _Tile(
+                  icon: Icons.link,
+                  title: 'لنک سے PDF شامل کریں',
+                  subtitle: 'انٹرنیٹ پر موجود PDF کا لنک ڈالیں',
+                  onTap: () => startUrlImport(context),
+                ),
+                _Tile(
+                  icon: Icons.share,
+                  title: 'دوسری ایپ سے شیئر کر کے شامل کریں',
+                  subtitle: 'WhatsApp / فائلز / براؤزر میں PDF کو شیئر کریں اور المکتبۃ الآفتابیہ چنیں',
+                  onTap: () => snack(context, 'کسی بھی ایپ میں PDF کھول کر Share دبائیں، پھر فہرست میں المکتبۃ الآفتابیہ چنیں'),
+                ),
+                _Tile(
+                  icon: Icons.campaign,
+                  title: 'اعلانات شائع کریں',
+                  subtitle: 'سب صارفین کو اعلان دکھائیں',
+                  onTap: () => _push(context, const NewsScreen()),
+                ),
+                _Tile(
+                  icon: Icons.inbox,
+                  title: 'صارفین کی شکایات',
+                  subtitle: 'آنے والی شکایات اور تجاویز دیکھیں',
+                  onTap: () => _push(context, const FeedbackAdminScreen()),
                 ),
                 _Tile(
                   icon: Icons.edit_note,
@@ -84,7 +150,7 @@ class MoreTab extends StatelessWidget {
               _Tile(
                 icon: Icons.info_outline,
                 title: 'ہمارے بارے میں',
-                subtitle: 'ورژن 1.0.0',
+                subtitle: 'ورژن 2.0.0',
                 onTap: () => _push(context, const AboutScreen()),
               ),
               _Tile(
@@ -123,7 +189,7 @@ class _Tile extends StatelessWidget {
         leading: CircleAvatar(backgroundColor: kLight, child: Icon(icon, color: kGreen)),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: subtitle.isEmpty ? null : Text(subtitle),
-        trailing: const Icon(Icons.chevron_left),
+        trailing: Icon(kChevron),
         onTap: onTap,
       ),
     );
@@ -154,7 +220,7 @@ class DownloadsScreen extends StatelessWidget {
                     return Card(
                       margin: const EdgeInsets.symmetric(vertical: 4),
                       child: ListTile(
-                        leading: const Icon(Icons.picture_as_pdf, color: kGreen, size: 32),
+                        leading: Icon(Icons.picture_as_pdf, color: kGreen, size: 32),
                         title: Text(d.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(d.author.isEmpty ? 'آف لائن دستیاب' : d.author),
                         trailing: IconButton(
@@ -195,18 +261,18 @@ class AboutScreen extends StatelessWidget {
             child: Container(
               width: 92,
               height: 92,
-              decoration: const BoxDecoration(color: kGreen, shape: BoxShape.circle),
+              decoration: BoxDecoration(color: kGreen, shape: BoxShape.circle),
               child: const Icon(Icons.wb_sunny, color: kGold, size: 54),
             ),
           ),
           const SizedBox(height: 12),
-          const Center(
+          Center(
             child: Text(
               'المکتبۃ الآفتابیہ',
               style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: kDark, height: 1.7),
             ),
           ),
-          const Center(child: Text('ورژن 1.0.0', style: TextStyle(color: Colors.black54))),
+          Center(child: Text('ورژن 2.0.0', style: TextStyle(color: kMuted))),
           const SizedBox(height: 16),
           const Text(kAboutText, style: TextStyle(fontSize: 16, height: 2.0)),
           if (Config.contact.isNotEmpty) ...<Widget>[

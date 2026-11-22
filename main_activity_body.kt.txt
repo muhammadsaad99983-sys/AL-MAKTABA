@@ -24,6 +24,9 @@ import java.util.concurrent.Executors
 class MainActivity : FlutterActivity() {
     private val channelName = "aftabia/native"
     private val pickCode = 4711
+    private val pickManyCode = 4712
+    private var pendingMany: MethodChannel.Result? = null
+    private val sharedUris = ArrayList<Uri>()
     private var pendingPick: MethodChannel.Result? = null
     private val worker = Executors.newSingleThreadExecutor()
     private val ui = Handler(Looper.getMainLooper())
@@ -32,6 +35,33 @@ class MainActivity : FlutterActivity() {
     private var renderer: PdfRenderer? = null
     private var descriptor: ParcelFileDescriptor? = null
     private var openPath: String? = null
+
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+        super.onCreate(savedInstanceState)
+        collectShared(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        collectShared(intent)
+    }
+
+    @Suppress("DEPRECATION")
+    private fun collectShared(i: Intent?) {
+        if (i == null) return
+        try {
+            val action = i.action
+            if (action == Intent.ACTION_SEND) {
+                val u = i.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+                if (u != null) synchronized(sharedUris) { sharedUris.add(u) }
+            } else if (action == Intent.ACTION_SEND_MULTIPLE) {
+                val list = i.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)
+                if (list != null) synchronized(sharedUris) { sharedUris.addAll(list) }
+            }
+        } catch (e: Exception) {
+        }
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -43,6 +73,8 @@ class MainActivity : FlutterActivity() {
         when (call.method) {
             "dir" -> result.success(filesDir.absolutePath)
             "pickPdf" -> pickPdf(result)
+            "pickPdfs" -> pickPdfs(result)
+            "takeShared" -> takeShared(result)
             "pdfOpen" -> {
                 val path = call.argument<String>("path")
                 if (path == null) result.error("args", "path missing", null) else pdfOpen(path, result)
@@ -126,7 +158,103 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun displayName(uri: Uri): String {
+        var name = "book.pdf"
+        try {
+            val cursor = contentResolver.query(uri, null, null, null, null)
+            if (cursor != null) {
+                try {
+                    val i = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (i >= 0 && cursor.moveToFirst()) {
+                        val n = cursor.getString(i)
+                        if (n != null) name = n
+                    }
+                } finally {
+                    cursor.close()
+                }
+            }
+        } catch (e: Exception) {
+        }
+        return name
+    }
+
+    private fun copyUris(uris: List<Uri>, result: MethodChannel.Result) {
+        worker.execute {
+            val out = ArrayList<HashMap<String, Any>>()
+            var n = 0
+            for (uri in uris) {
+                try {
+                    val name = displayName(uri)
+                    val dest = File(cacheDir, "pick_" + System.currentTimeMillis() + "_" + n + ".pdf")
+                    n++
+                    val input = contentResolver.openInputStream(uri) ?: continue
+                    input.use { src ->
+                        FileOutputStream(dest).use { o -> src.copyTo(o) }
+                    }
+                    val map = HashMap<String, Any>()
+                    map["path"] = dest.absolutePath
+                    map["name"] = name
+                    map["size"] = dest.length()
+                    out.add(map)
+                } catch (e: Exception) {
+                }
+            }
+            ui.post { result.success(out) }
+        }
+    }
+
+    private fun pickPdfs(result: MethodChannel.Result) {
+        if (pendingMany != null) {
+            result.error("busy", "picker already open", null)
+            return
+        }
+        pendingMany = result
+        try {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+            intent.addCategory(Intent.CATEGORY_OPENABLE)
+            intent.type = "application/pdf"
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            startActivityForResult(intent, pickManyCode)
+        } catch (e: Exception) {
+            pendingMany = null
+            result.error("pick", e.message ?: "cannot open picker", null)
+        }
+    }
+
+    private fun takeShared(result: MethodChannel.Result) {
+        val list = ArrayList<Uri>()
+        synchronized(sharedUris) {
+            list.addAll(sharedUris)
+            sharedUris.clear()
+        }
+        if (list.isEmpty()) {
+            result.success(ArrayList<HashMap<String, Any>>())
+        } else {
+            copyUris(list, result)
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == pickManyCode) {
+            val r = pendingMany ?: return
+            pendingMany = null
+            if (resultCode != Activity.RESULT_OK || data == null) {
+                r.success(ArrayList<HashMap<String, Any>>())
+                return
+            }
+            val uris = ArrayList<Uri>()
+            val clip = data.clipData
+            if (clip != null) {
+                for (i in 0 until clip.itemCount) {
+                    val u = clip.getItemAt(i).uri
+                    if (u != null) uris.add(u)
+                }
+            } else if (data.data != null) {
+                uris.add(data.data!!)
+            }
+            copyUris(uris, r)
+            return
+        }
         if (requestCode != pickCode) {
             super.onActivityResult(requestCode, resultCode, data)
             return

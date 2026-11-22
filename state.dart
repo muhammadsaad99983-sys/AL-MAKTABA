@@ -41,6 +41,7 @@ class Lib extends ChangeNotifier {
   List<LibCategory> categories = <LibCategory>[];
   List<Book> books = <Book>[];
   List<Post> posts = <Post>[];
+  List<News> news = <News>[];
 
   bool loading = false;
   bool offline = false;
@@ -62,6 +63,7 @@ class Lib extends ChangeNotifier {
     categories = _mapList<LibCategory>(await Local.readJson('c_categories.json'), LibCategory.fromJson);
     books = _mapList<Book>(await Local.readJson('c_books.json'), Book.fromJson);
     posts = _mapList<Post>(await Local.readJson('c_posts.json'), Post.fromJson);
+    news = _mapList<News>(await Local.readJson('c_news.json'), News.fromJson);
     final dynamic d = await Local.readJson('downloads.json');
     for (final DownloadInfo i in _mapList<DownloadInfo>(d, DownloadInfo.fromJson)) {
       downloads[i.id] = i;
@@ -102,6 +104,10 @@ class Lib extends ChangeNotifier {
       books = _mapList<Book>(r[1], Book.fromJson);
       posts = _mapList<Post>(r[2], Post.fromJson);
       offline = false;
+      try {
+        news = _mapList<News>(await Api.getList('announcements'), News.fromJson);
+        Local.writeJson('c_news.json', news.map((News n) => n.toJson()).toList());
+      } catch (_) {}
       Local.writeJson('c_categories.json', categories.map((LibCategory c) => c.toJson()).toList());
       Local.writeJson('c_books.json', books.map((Book b) => b.toJson()).toList());
       Local.writeJson('c_posts.json', posts.map((Post p) => p.toJson()).toList());
@@ -274,6 +280,16 @@ class Lib extends ChangeNotifier {
 
   Future<void> renameCategory(String id, String name) async {
     await Api.update('categories', id, <String, dynamic>{'name': name});
+    await refresh();
+  }
+
+  Future<void> addNews(String title, String body) async {
+    await Api.insert('announcements', <String, dynamic>{'title': title, 'body': body});
+    await refresh();
+  }
+
+  Future<void> deleteNews(String id) async {
+    await Api.deleteRow('announcements', id);
     await refresh();
   }
 
