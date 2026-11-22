@@ -10,7 +10,7 @@ permissions:
 
 env:
   # Ads switch: 'true' = ads on, 'false' = ads off (no ad code at all).
-  ENABLE_ADS: 'false'
+  ENABLE_ADS: 'true'
   # Google's official TEST AdMob App ID. Replace with your own App ID later.
   ADMOB_APP_ID: ca-app-pub-3940256099942544~3347511713
 
@@ -56,6 +56,21 @@ jobs:
           sed -i 's/android:label="[^"]*"/android:label="المکتبۃ الآفتابیہ"/' "$MANIFEST"
           sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application#' "$MANIFEST"
           grep -q 'android.permission.INTERNET' "$MANIFEST" || { echo "ERROR: INTERNET permission was not added"; exit 1; }
+
+          # Lets other apps (WhatsApp, Files, browser) share a PDF to this app.
+          python3 - "$MANIFEST" <<'PYEOF'
+          import sys
+          p = sys.argv[1]
+          s = open(p, encoding='utf8').read()
+          parts = []
+          for act in ('android.intent.action.SEND', 'android.intent.action.SEND_MULTIPLE'):
+              parts.append('<intent-filter><action android:name="' + act + '"/>'
+                           '<category android:name="android.intent.category.DEFAULT"/>'
+                           '<data android:mimeType="application/pdf"/></intent-filter>')
+          s = s.replace('</activity>', '\n        '.join(parts) + '\n        </activity>', 1)
+          open(p, 'w', encoding='utf8').write(s)
+          PYEOF
+          grep -q 'android.intent.action.SEND_MULTIPLE' "$MANIFEST" || { echo "ERROR: share filter was not added"; exit 1; }
 
           if [ "$ENABLE_ADS" = "true" ]; then
             sed -i "0,/<activity/s#<activity#<meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"$ADMOB_APP_ID\"/>\n        <activity#" "$MANIFEST"
@@ -113,7 +128,13 @@ jobs:
           cat "$HOME/.gradle/init.d/no-lint.gradle"
 
       - name: Build release APK
-        run: flutter build apk --release
+        run: |
+          if [ "$ENABLE_ADS" = "true" ]; then
+            # The ads package crashes at start-up when R8 shrinking is on, so shrinking is off.
+            flutter build apk --release --no-shrink
+          else
+            flutter build apk --release
+          fi
 
       - name: Rename APK
         run: cp build/app/outputs/flutter-apk/app-release.apk maktaba_aftabia.apk
@@ -121,7 +142,7 @@ jobs:
       - name: Save APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: maktaba_apk
+          name: maktaba-apk
           path: maktaba_aftabia.apk
 
       - name: Publish APK in Releases
