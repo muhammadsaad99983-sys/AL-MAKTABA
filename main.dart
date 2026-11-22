@@ -9,14 +9,41 @@ import 'userdata.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await settings.load();
-  await ud.load();
-  await lib.init();
-  runApp(const MaktabaApp());
+  final StringBuffer problems = StringBuffer();
+  try {
+    await settings.load();
+  } catch (e) {
+    problems.writeln('settings: $e');
+  }
+  try {
+    await ud.load();
+  } catch (e) {
+    problems.writeln('userdata: $e');
+  }
+  try {
+    await lib.init();
+  } catch (e) {
+    problems.writeln('library: $e');
+  }
+  ErrorWidget.builder = (FlutterErrorDetails d) => Material(
+        color: const Color(0xFFFFF3E0),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: SingleChildScrollView(
+            child: SelectableText(
+              d.exceptionAsString(),
+              textDirection: TextDirection.ltr,
+              style: const TextStyle(color: Color(0xFFB71C1C), fontSize: 12),
+            ),
+          ),
+        ),
+      );
+  runApp(MaktabaApp(startupProblems: problems.toString()));
 }
 
 class MaktabaApp extends StatefulWidget {
-  const MaktabaApp({super.key});
+  final String startupProblems;
+  const MaktabaApp({super.key, this.startupProblems = ''});
 
   @override
   State<MaktabaApp> createState() => _MaktabaAppState();
@@ -96,7 +123,9 @@ class _MaktabaAppState extends State<MaktabaApp> with WidgetsBindingObserver {
           ),
         );
       },
-      home: Config.isConfigured ? const HomeShell() : const SetupNeededScreen(),
+      home: widget.startupProblems.isNotEmpty
+          ? _ProblemScreen(text: widget.startupProblems)
+          : (Config.isConfigured ? const HomeShell() : const SetupNeededScreen()),
     );
   }
 }
@@ -118,6 +147,32 @@ class SetupNeededScreen extends StatelessWidget {
             style: TextStyle(fontSize: 16, height: 1.9),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ProblemScreen extends StatelessWidget {
+  final String text;
+  const _ProblemScreen({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Startup problem')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: <Widget>[
+          SelectableText(text, textDirection: TextDirection.ltr, style: const TextStyle(color: Color(0xFFB71C1C))),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute<void>(builder: (BuildContext _) => const HomeShell()),
+            ),
+            child: const Text('Continue'),
+          ),
+        ],
       ),
     );
   }
