@@ -29,7 +29,7 @@ String postAsText(Post p) {
     b.writeln(meta.join(', '));
   }
   b.writeln();
-  b.write('— ${tr('المکتبۃ الآفتابیہ')}');
+  b.write('— ${tr('اسلام 960')}');
   return b.toString();
 }
 

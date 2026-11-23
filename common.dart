@@ -19,8 +19,8 @@ Color get kCardBg => _dk ? const Color(0xFF172622) : const Color(0xFFFFFFFF);
 Color get kMuted => _dk ? const Color(0xFFB4C2BD) : const Color(0xFF616161);
 Color get kFaint => _dk ? const Color(0xFF5E6F69) : const Color(0xFFBDBDBD);
 Color get kText => _dk ? const Color(0xFFE9EEEC) : const Color(0xFF212121);
-Color get kWarm => _dk ? const Color(0xFF2B2A1C) : kWarm;
-Color get kNoteBg => _dk ? const Color(0xFF3A2E1A) : kNoteBg;
+Color get kWarm => _dk ? const Color(0xFF2B2A1C) : const Color(0xFFFFF8E1);
+Color get kNoteBg => _dk ? const Color(0xFF3A2E1A) : const Color(0xFFFFF3E0);
 IconData get kChevron => settings.rtl ? Icons.chevron_left : Icons.chevron_right;
 
 void snack(BuildContext context, String msg) {

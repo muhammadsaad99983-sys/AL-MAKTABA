@@ -69,7 +69,7 @@ class SettingsScreen extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Text(
-                    'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ\nالمکتبۃ الآفتابیہ',
+                    'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ\nاسلام 960',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 20, height: 2, color: kDark),
                   ),

@@ -109,8 +109,8 @@ class MoreTab extends StatelessWidget {
                 _Tile(
                   icon: Icons.share,
                   title: 'دوسری ایپ سے شیئر کر کے شامل کریں',
-                  subtitle: 'WhatsApp / فائلز / براؤزر میں PDF کو شیئر کریں اور المکتبۃ الآفتابیہ چنیں',
-                  onTap: () => snack(context, 'کسی بھی ایپ میں PDF کھول کر Share دبائیں، پھر فہرست میں المکتبۃ الآفتابیہ چنیں'),
+                  subtitle: 'WhatsApp / فائلز / براؤزر میں PDF کو شیئر کریں اور اسلام 960 چنیں',
+                  onTap: () => snack(context, 'کسی بھی ایپ میں PDF کھول کر Share دبائیں، پھر فہرست میں اسلام 960 چنیں'),
                 ),
                 _Tile(
                   icon: Icons.campaign,
@@ -150,7 +150,7 @@ class MoreTab extends StatelessWidget {
               _Tile(
                 icon: Icons.info_outline,
                 title: 'ہمارے بارے میں',
-                subtitle: 'ورژن 2.0.0',
+                subtitle: 'ورژن 3.0.0',
                 onTap: () => _push(context, const AboutScreen()),
               ),
               _Tile(
@@ -268,11 +268,11 @@ class AboutScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Center(
             child: Text(
-              'المکتبۃ الآفتابیہ',
+              'اسلام 960',
               style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: kDark, height: 1.7),
             ),
           ),
-          Center(child: Text('ورژن 2.0.0', style: TextStyle(color: kMuted))),
+          Center(child: Text('ورژن 3.0.0', style: TextStyle(color: kMuted))),
           const SizedBox(height: 16),
           const Text(kAboutText, style: TextStyle(fontSize: 16, height: 2.0)),
           if (Config.contact.isNotEmpty) ...<Widget>[

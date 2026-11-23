@@ -1,4 +1,15 @@
 import android.app.Activity
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.hardware.GeomagneticField
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
@@ -133,6 +144,17 @@ class MainActivity : FlutterActivity() {
                     result.error("url", e.message ?: "open failed", null)
                 }
             }
+            "getLocation" -> getLocation(result)
+            "compassStart" -> {
+                val lat = call.argument<Double>("lat") ?: 0.0
+                val lon = call.argument<Double>("lon") ?: 0.0
+                result.success(compassStart(lat, lon))
+            }
+            "compassStop" -> {
+                compassStop()
+                result.success(true)
+            }
+            "compassRead" -> result.success(compassRead())
             else -> result.notImplemented()
         }
     }
@@ -498,5 +520,241 @@ class MainActivity : FlutterActivity() {
                 ui.post { result.error("save", e.message ?: "save failed", null) }
             }
         }
+    }
+
+    // ------------------------------------------------------------
+    //  Location (one-shot, permission asked at the moment of use)
+    // ------------------------------------------------------------
+
+    private val locCode = 4712
+    private var pendingLoc: MethodChannel.Result? = null
+    private var locListener: LocationListener? = null
+    private var locBest: Location? = null
+    private val locTimeout = Runnable { finishLocation("timeout") }
+
+    private fun hasLocPermission(): Boolean {
+        if (Build.VERSION.SDK_INT < 23) return true
+        return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+            checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun getLocation(result: MethodChannel.Result) {
+        if (pendingLoc != null) {
+            result.error("busy", "location request already running", null)
+            return
+        }
+        pendingLoc = result
+        locBest = null
+        if (!hasLocPermission()) {
+            if (Build.VERSION.SDK_INT >= 23) {
+                requestPermissions(
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+                    locCode
+                )
+            } else {
+                finishLocation("denied")
+            }
+            return
+        }
+        startLocation()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != locCode) return
+        if (pendingLoc == null) return
+        if (hasLocPermission()) startLocation() else finishLocation("denied")
+    }
+
+    private fun startLocation() {
+        try {
+            val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            var best: Location? = null
+            for (p in lm.getProviders(true)) {
+                try {
+                    val l = lm.getLastKnownLocation(p)
+                    if (l != null && (best == null || l.time > best.time)) best = l
+                } catch (e: SecurityException) {
+                } catch (e: Exception) {
+                }
+            }
+            locBest = best
+            val fresh = best != null && (System.currentTimeMillis() - best.time) < 30L * 60L * 1000L
+            if (fresh) {
+                finishLocation("ok")
+                return
+            }
+            val providers = ArrayList<String>()
+            if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) providers.add(LocationManager.GPS_PROVIDER)
+            if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) providers.add(LocationManager.NETWORK_PROVIDER)
+            if (providers.isEmpty()) {
+                finishLocation(if (best != null) "ok" else "off")
+                return
+            }
+            val listener = object : LocationListener {
+                override fun onLocationChanged(location: Location) {
+                    locBest = location
+                    finishLocation("ok")
+                }
+
+                override fun onStatusChanged(provider: String?, status: Int, extras: android.os.Bundle?) {}
+                override fun onProviderEnabled(provider: String) {}
+                override fun onProviderDisabled(provider: String) {}
+            }
+            locListener = listener
+            for (p in providers) {
+                lm.requestLocationUpdates(p, 0L, 0f, listener, Looper.getMainLooper())
+            }
+            ui.postDelayed(locTimeout, 25000L)
+        } catch (e: SecurityException) {
+            finishLocation("denied")
+        } catch (e: Exception) {
+            finishLocation("timeout")
+        }
+    }
+
+    private fun finishLocation(status: String) {
+        val r = pendingLoc ?: return
+        pendingLoc = null
+        ui.removeCallbacks(locTimeout)
+        try {
+            val l = locListener
+            if (l != null) {
+                val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                lm.removeUpdates(l)
+            }
+        } catch (e: Exception) {
+        }
+        locListener = null
+        val map = HashMap<String, Any>()
+        val best = locBest
+        if (best != null && (status == "ok" || status == "timeout")) {
+            map["status"] = "ok"
+            map["lat"] = best.latitude
+            map["lon"] = best.longitude
+        } else {
+            map["status"] = status
+        }
+        r.success(map)
+    }
+
+    // ------------------------------------------------------------
+    //  Compass: rotation-vector sensor (gyro + accelerometer + magnetometer
+    //  fused by Android), works flat on a table and when held upright.
+    // ------------------------------------------------------------
+
+    private var sensorMgr: SensorManager? = null
+    private var compassOn = false
+    private var usingRotationVector = false
+    private val rot = FloatArray(9)
+    private val accelV = FloatArray(3)
+    private val magV = FloatArray(3)
+    private var haveAccel = false
+    private var haveMag = false
+    private var headingDeg = -1.0
+    private var flatMode = true
+    private var sensorAccuracy = 0
+    private var declination = 0f
+
+    private val sensorListener = object : SensorEventListener {
+        override fun onSensorChanged(e: SensorEvent) {
+            when (e.sensor.type) {
+                Sensor.TYPE_ROTATION_VECTOR -> {
+                    SensorManager.getRotationMatrixFromVector(rot, e.values)
+                    computeHeading()
+                }
+                Sensor.TYPE_ACCELEROMETER -> {
+                    if (!usingRotationVector) {
+                        for (i in 0..2) accelV[i] = accelV[i] * 0.8f + e.values[i] * 0.2f
+                        haveAccel = true
+                        computeFromRaw()
+                    }
+                }
+                Sensor.TYPE_MAGNETIC_FIELD -> {
+                    if (!usingRotationVector) {
+                        for (i in 0..2) magV[i] = magV[i] * 0.8f + e.values[i] * 0.2f
+                        haveMag = true
+                        computeFromRaw()
+                    }
+                }
+            }
+        }
+
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+            if (sensor != null && sensor.type == Sensor.TYPE_MAGNETIC_FIELD) sensorAccuracy = accuracy
+        }
+    }
+
+    private fun computeFromRaw() {
+        if (!haveAccel || !haveMag) return
+        if (SensorManager.getRotationMatrix(rot, null, accelV, magV)) computeHeading()
+    }
+
+    private fun computeHeading() {
+        // rot maps phone axes to world (East, North, Up).
+        // Flat on a table: use the top edge of the phone. Upright: use the back camera direction.
+        val flat = Math.abs(rot[8]) > 0.6
+        val az = if (flat) Math.atan2(rot[1].toDouble(), rot[4].toDouble())
+        else Math.atan2((-rot[2]).toDouble(), (-rot[5]).toDouble())
+        var deg = Math.toDegrees(az) + declination.toDouble()
+        deg = ((deg % 360.0) + 360.0) % 360.0
+        headingDeg = deg
+        flatMode = flat
+    }
+
+    private fun compassStart(lat: Double, lon: Double): Boolean {
+        compassStop()
+        try {
+            val sm = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+            sensorMgr = sm
+            declination = try {
+                GeomagneticField(lat.toFloat(), lon.toFloat(), 0f, System.currentTimeMillis()).declination
+            } catch (e: Exception) {
+                0f
+            }
+            headingDeg = -1.0
+            haveAccel = false
+            haveMag = false
+            sensorAccuracy = 0
+            val rv = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+            val mag = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+            val acc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+            var ok = false
+            if (rv != null && mag != null) {
+                usingRotationVector = true
+                ok = sm.registerListener(sensorListener, rv, SensorManager.SENSOR_DELAY_GAME)
+                sm.registerListener(sensorListener, mag, SensorManager.SENSOR_DELAY_UI)
+            } else if (mag != null && acc != null) {
+                usingRotationVector = false
+                ok = sm.registerListener(sensorListener, acc, SensorManager.SENSOR_DELAY_GAME)
+                sm.registerListener(sensorListener, mag, SensorManager.SENSOR_DELAY_GAME)
+            }
+            compassOn = ok
+            return ok
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
+    private fun compassStop() {
+        try {
+            sensorMgr?.unregisterListener(sensorListener)
+        } catch (e: Exception) {
+        }
+        compassOn = false
+    }
+
+    private fun compassRead(): HashMap<String, Any>? {
+        if (!compassOn || headingDeg < 0.0) return null
+        val m = HashMap<String, Any>()
+        m["heading"] = headingDeg
+        m["accuracy"] = sensorAccuracy
+        m["flat"] = flatMode
+        return m
+    }
+
+    override fun onDestroy() {
+        compassStop()
+        super.onDestroy()
     }
 }

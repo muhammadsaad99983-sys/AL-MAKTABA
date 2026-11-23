@@ -10,7 +10,7 @@ permissions:
 
 env:
   # Ads switch: 'true' = ads on, 'false' = ads off (no ad code at all).
-  ENABLE_ADS: 'true'
+  ENABLE_ADS: 'false'
   # Google's official TEST AdMob App ID. Replace with your own App ID later.
   ADMOB_APP_ID: ca-app-pub-3940256099942544~3347511713
 
@@ -53,8 +53,10 @@ jobs:
           done
 
           MANIFEST=android/app/src/main/AndroidManifest.xml
-          sed -i 's/android:label="[^"]*"/android:label="المکتبۃ الآفتابیہ"/' "$MANIFEST"
+          sed -i 's/android:label="[^"]*"/android:label="اسلام 960"/' "$MANIFEST"
           sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application#' "$MANIFEST"
+          sed -i 's#<application#<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\n    <application#' "$MANIFEST"
+          grep -q 'android.permission.ACCESS_FINE_LOCATION' "$MANIFEST" || { echo "ERROR: location permission was not added"; exit 1; }
           grep -q 'android.permission.INTERNET' "$MANIFEST" || { echo "ERROR: INTERNET permission was not added"; exit 1; }
 
           # Lets other apps (WhatsApp, Files, browser) share a PDF to this app.
@@ -150,5 +152,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: Al-Maktaba Al-Aftabia build ${{ github.run_number }}
+          name: Islam 960 build ${{ github.run_number }}
           files: maktaba_aftabia.apk

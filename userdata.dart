@@ -15,14 +15,19 @@ class TasbeehItem {
 }
 
 const List<TasbeehItem> kTasbeehPresets = <TasbeehItem>[
-  TasbeehItem('p_subhan', 'سبحان اللہ', 'سُبْحَانَ اللّٰه', 33),
-  TasbeehItem('p_hamd', 'الحمد للہ', 'اَلْحَمْدُ لِلّٰه', 33),
-  TasbeehItem('p_akbar', 'اللہ اکبر', 'اَللّٰهُ أَكْبَر', 34),
-  TasbeehItem('p_istighfar', 'استغفار', 'أَسْتَغْفِرُ اللّٰه', 100),
+  TasbeehItem('p_subhan', 'سبحان اللہ', 'سُبْحَانَ اللّٰهِ', 33),
+  TasbeehItem('p_hamd', 'الحمد للہ', 'اَلْحَمْدُ لِلّٰهِ', 33),
+  TasbeehItem('p_akbar', 'اللہ اکبر', 'اَللّٰهُ أَكْبَرُ', 34),
+  TasbeehItem('p_tawheed', 'کلمہ طیبہ', 'لَا إِلٰهَ إِلَّا اللّٰهُ', 100),
+  TasbeehItem('p_istighfar', 'استغفار', 'أَسْتَغْفِرُ اللّٰهَ', 100),
   TasbeehItem('p_durood', 'درود شریف', 'اَللّٰهُمَّ صَلِّ عَلٰى مُحَمَّدٍ', 100),
-  TasbeehItem('p_tawheed', 'کلمہ طیبہ', 'لَا إِلٰهَ إِلَّا اللّٰه', 100),
-  TasbeehItem('p_hawqala', 'لا حول ولا قوۃ', 'لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللّٰه', 100),
-  TasbeehItem('p_morning', 'صبح و شام کی تسبیح', 'سُبْحَانَ اللّٰهِ وَبِحَمْدِهِ', 100),
+  TasbeehItem('p_hawqala', 'لا حول ولا قوۃ', 'لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللّٰهِ', 100),
+  TasbeehItem('p_morning', 'سبحان اللہ وبحمدہ', 'سُبْحَانَ اللّٰهِ وَبِحَمْدِهِ', 100),
+  TasbeehItem('p_azim', 'سبحان اللہ العظیم', 'سُبْحَانَ اللّٰهِ الْعَظِيمِ', 100),
+  TasbeehItem('p_hasbi', 'حسبنا اللہ', 'حَسْبُنَا اللّٰهُ وَنِعْمَ الْوَكِيلُ', 100),
+  TasbeehItem('p_rabbi', 'رب اغفر لی', 'رَبِّ اغْفِرْ لِي', 100),
+  TasbeehItem('p_yahayy', 'یا حی یا قیوم', 'يَا حَيُّ يَا قَيُّومُ', 100),
+  TasbeehItem('p_tasbih4', 'چوتھا کلمہ', 'سُبْحَانَ اللّٰهِ وَالْحَمْدُ لِلّٰهِ وَلَا إِلٰهَ إِلَّا اللّٰهُ وَاللّٰهُ أَكْبَرُ', 100),
 ];
 
 String dayKey(DateTime d) => '${d.year}-${d.month < 10 ? '0' : ''}${d.month}-${d.day < 10 ? '0' : ''}${d.day}';
@@ -38,6 +43,9 @@ class UserData extends ChangeNotifier {
   final Map<String, Map<String, int>> daily = <String, Map<String, int>>{};
   final List<TasbeehItem> custom = <TasbeehItem>[];
   final Set<String> seenNews = <String>{};
+  final Map<String, int> sebhaTargets = <String, int>{};
+  bool sebhaSeq = false;
+  String sebhaLast = '';
   Timer? _timer;
 
   List<TasbeehItem> get allTasbeeh => <TasbeehItem>[...kTasbeehPresets, ...custom];
@@ -60,6 +68,14 @@ class UserData extends ChangeNotifier {
     recentBooks.addAll(_strs(j['recentBooks']));
     recentPosts.addAll(_strs(j['recentPosts']));
     seenNews.addAll(_strs(j['seenNews']));
+    sebhaSeq = j['sebhaSeq'] == true;
+    sebhaLast = (j['sebhaLast'] ?? '').toString();
+    final dynamic st = j['sebhaTargets'];
+    if (st is Map) {
+      st.forEach((dynamic k, dynamic v) {
+        if (v is num && v > 0) sebhaTargets[k.toString()] = v.toInt();
+      });
+    }
     final dynamic c = j['counts'];
     if (c is Map) {
       c.forEach((dynamic k, dynamic v) {
@@ -104,6 +120,9 @@ class UserData extends ChangeNotifier {
         'recentBooks': recentBooks,
         'recentPosts': recentPosts,
         'seenNews': seenNews.toList(),
+        'sebhaTargets': sebhaTargets,
+        'sebhaSeq': sebhaSeq,
+        'sebhaLast': sebhaLast,
         'counts': counts,
         'daily': daily,
         'custom': custom.map((TasbeehItem t) => t.toJson()).toList(),
@@ -155,6 +174,25 @@ class UserData extends ChangeNotifier {
     final int before = seenNews.length;
     seenNews.addAll(ids);
     if (seenNews.length != before) _save();
+  }
+
+  // ---- sebha (bead counter) settings
+  int targetOf(TasbeehItem t) => sebhaTargets[t.id] ?? t.target;
+
+  void setTarget(String id, int v) {
+    sebhaTargets[id] = v;
+    _save(now: true);
+  }
+
+  void setSeq(bool v) {
+    sebhaSeq = v;
+    _save(now: true);
+  }
+
+  void setLast(String id) {
+    if (sebhaLast == id) return;
+    sebhaLast = id;
+    _save();
   }
 
   // ---- tasbeeh

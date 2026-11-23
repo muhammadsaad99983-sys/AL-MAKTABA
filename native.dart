@@ -107,4 +107,43 @@ class Native {
       await _ch.invokeMethod<bool>('openUrl', <String, dynamic>{'url': url});
     } catch (_) {}
   }
+
+  /// Phone position. Map: status = ok | denied | off | timeout, lat, lon.
+  static Future<Map<String, dynamic>> getLocation() async {
+    final Map<dynamic, dynamic>? r = await _ch.invokeMethod<Map<dynamic, dynamic>>('getLocation');
+    final Map<String, dynamic> out = <String, dynamic>{};
+    if (r != null) {
+      r.forEach((dynamic k, dynamic v) => out[k.toString()] = v);
+    }
+    return out;
+  }
+
+  /// Starts the compass sensors. Returns false when the phone has no usable sensor.
+  static Future<bool> compassStart(double lat, double lon) async {
+    try {
+      final bool? r = await _ch.invokeMethod<bool>('compassStart', <String, dynamic>{'lat': lat, 'lon': lon});
+      return r == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<void> compassStop() async {
+    try {
+      await _ch.invokeMethod<bool>('compassStop');
+    } catch (_) {}
+  }
+
+  /// heading (true north, 0..360), accuracy (0..3), flat (bool) or null.
+  static Future<Map<String, dynamic>?> compassRead() async {
+    try {
+      final Map<dynamic, dynamic>? r = await _ch.invokeMethod<Map<dynamic, dynamic>>('compassRead');
+      if (r == null) return null;
+      final Map<String, dynamic> out = <String, dynamic>{};
+      r.forEach((dynamic k, dynamic v) => out[k.toString()] = v);
+      return out;
+    } catch (_) {
+      return null;
+    }
+  }
 }

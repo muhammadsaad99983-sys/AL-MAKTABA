@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/material.dart' as m show Text;
 import 'i18n_data.dart';
+import 'i18n_extra.dart';
 import 'settings.dart';
 
 /// Translates an Urdu UI string into the chosen app language.
@@ -9,7 +10,7 @@ String tr(String ur) {
   final String l = settings.lang;
   if (l == 'ur') return ur;
   final Map<String, String> d = l == 'ar' ? kAr : kEn;
-  return d[ur] ?? ur;
+  return d[ur] ?? (l == 'ar' ? kArExtra : kEnExtra)[ur] ?? ur;
 }
 
 /// Same as tr(), then replaces every %s with the given values in order.

@@ -9,6 +9,12 @@ import 'state.dart';
 import 'ui_books.dart';
 import 'ui_duas.dart';
 import 'ui_feedback.dart';
+import 'ui_hadith.dart';
+import 'ui_ibadat.dart';
+import 'ui_names.dart';
+import 'ui_prayer.dart';
+import 'ui_qibla.dart';
+import 'ui_sebha.dart';
 import 'ui_import.dart';
 import 'ui_lists.dart';
 import 'ui_more.dart';
@@ -25,7 +31,8 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
-  int tab = 0;
+  int tab = 2;
+  final Set<int> opened = <int>{2};
 
   @override
   void initState() {
@@ -47,17 +54,35 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed && mounted) handleShared(context);
   }
 
+  void _go(int i) {
+    setState(() {
+      tab = i;
+      opened.add(i);
+    });
+  }
+
+  Widget _page(int i) {
+    if (!opened.contains(i)) return const SizedBox.shrink();
+    switch (i) {
+      case 0:
+        return const BooksTab();
+      case 1:
+        return const HadithTab();
+      case 2:
+        return HomeTab(onGoTo: _go);
+      case 3:
+        return const IbadatTab();
+      default:
+        return const MoreTab();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
         index: tab,
-        children: <Widget>[
-          HomeTab(onGoTo: (int i) => setState(() => tab = i)),
-          const BooksTab(),
-          const PostsTab(),
-          const MoreTab(),
-        ],
+        children: <Widget>[for (int i = 0; i < 5; i++) _page(i)],
       ),
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
@@ -65,22 +90,27 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           const AdBanner(),
           NavigationBar(
             selectedIndex: tab,
-            onDestinationSelected: (int i) => setState(() => tab = i),
+            onDestinationSelected: _go,
             destinations: <NavigationDestination>[
-              NavigationDestination(
-                icon: const Icon(Icons.home_outlined),
-                selectedIcon: const Icon(Icons.home),
-                label: tr('مرکزی'),
-              ),
               NavigationDestination(
                 icon: const Icon(Icons.menu_book_outlined),
                 selectedIcon: const Icon(Icons.menu_book),
                 label: tr('کتابیں'),
               ),
               NavigationDestination(
-                icon: const Icon(Icons.article_outlined),
-                selectedIcon: const Icon(Icons.article),
-                label: tr('تحریریں'),
+                icon: const Icon(Icons.format_quote_outlined),
+                selectedIcon: const Icon(Icons.format_quote),
+                label: tr('حدیث'),
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.home_outlined),
+                selectedIcon: const Icon(Icons.home),
+                label: tr('مرکزی'),
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.mosque_outlined),
+                selectedIcon: const Icon(Icons.mosque),
+                label: tr('عبادات'),
               ),
               NavigationDestination(
                 icon: const Icon(Icons.menu),
@@ -116,7 +146,7 @@ class HomeTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: Listenable.merge(<Listenable>[lib, ud]),
+      animation: lib,
       builder: (BuildContext context, Widget? _) {
         final List<Book> newBooks = lib.books.take(5).toList();
         final List<Post> newPosts = lib.posts.take(5).toList();
@@ -130,34 +160,24 @@ class HomeTab extends StatelessWidget {
         }
 
         final List<_Tile> main = <_Tile>[
-          _Tile(Icons.auto_stories, 'قرآن مجید', () => _soon(context)),
-          _Tile(Icons.local_library, 'اسلامی کتب خانہ', () => onGoTo(1)),
-          _Tile(Icons.format_quote, 'احادیث نبویہ ﷺ',
-              () => _push(context, const KindScreen(kind: 'hadith', title: 'احادیث نبویہ ﷺ'))),
-          _Tile(Icons.blur_circular, 'اذکار و تسبیحات', () => _push(context, const TasbeehListScreen())),
+          _Tile(Icons.local_library, 'اسلامی کتب خانہ', () => onGoTo(0)),
+          _Tile(Icons.format_quote, 'کتبِ احادیث', () => onGoTo(1)),
           _Tile(Icons.volunteer_activism, 'دعائیں', () => _push(context, const DuasScreen())),
-          _Tile(Icons.access_time, 'نماز کے اوقات', () => _soon(context)),
-          _Tile(Icons.explore, 'قبلہ نما', () => _soon(context)),
-          _Tile(Icons.calendar_month, 'اسلامی کیلنڈر', () => _soon(context)),
-          _Tile(Icons.article, 'اسلامی مضامین', () => onGoTo(2)),
+          _Tile(Icons.explore, 'قبلہ نما', () => _push(context, const QiblaScreen())),
+          _Tile(Icons.auto_awesome, 'اسمائے حسنیٰ', () => _push(context, const NamesScreen())),
+          _Tile(Icons.calendar_month, 'اسلامی کیلنڈر', () => _push(context, const CalendarScreen())),
           _Tile(Icons.gavel, 'فتاویٰ', () => _push(context, const KindScreen(kind: 'masla', title: 'فتاویٰ'))),
+          _Tile(Icons.article, 'اسلامی مضامین', () => _push(context, const PostsTab())),
           _Tile(Icons.history_edu, 'اسلامی تاریخ', () {
             final LibCategory? c = lib.findCategory('tarikh');
             if (c != null) {
               openCategory(context, c);
             } else {
-              onGoTo(1);
+              onGoTo(0);
             }
           }),
-          _Tile(Icons.translate, 'عربی زبان سیکھیں', () => _soon(context)),
         ];
-        const Set<String> soonLabels = <String>{
-          'قرآن مجید',
-          'نماز کے اوقات',
-          'قبلہ نما',
-          'اسلامی کیلنڈر',
-          'عربی زبان سیکھیں',
-        };
+        const Set<String> soonLabels = <String>{};
         final List<_Tile> mine = <_Tile>[
           _Tile(Icons.favorite, 'پسندیدہ', () => _push(context, const ListsScreen(recent: false))),
           _Tile(Icons.history, 'حالیہ مطالعہ', () => _push(context, const ListsScreen(recent: true))),
@@ -198,6 +218,19 @@ class HomeTab extends StatelessWidget {
                         '${tr(lib.error ?? '')}\n${tr('پہلے سے محفوظ شدہ مواد دکھایا جا رہا ہے۔')}',
                         onRetry: lib.refresh,
                       ),
+                    const SizedBox(height: 10),
+                    _LearnGrid(
+                      items: <_Tile>[
+                        _Tile(Icons.wb_sunny_outlined, 'صبح', () => _push(context, const DuaCategoryScreen(cat: 'morning'))),
+                        _Tile(Icons.wb_twilight, 'شام', () => _push(context, const DuaCategoryScreen(cat: 'evening'))),
+                        _Tile(Icons.mosque_outlined, 'نماز', () => _push(context, const DuaCategoryScreen(cat: 'prayer'))),
+                        _Tile(Icons.blur_circular, 'تسبیح', () => _push(context, const SebhaScreen())),
+                        _Tile(Icons.bedtime_outlined, 'نیند', () => _push(context, const DuaCategoryScreen(cat: 'sleep'))),
+                        _Tile(Icons.alarm, 'بیداری', () => openWaking(context)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    const PrayerCard(),
                     if (resume != null)
                       Builder(builder: (BuildContext context) {
                         final Book rb = resume!;
@@ -240,11 +273,11 @@ class HomeTab extends StatelessWidget {
                       ),
                     ],
                     if (newBooks.isNotEmpty) ...<Widget>[
-                      SectionTitle('نئی کتابیں', onMore: () => onGoTo(1)),
+                      SectionTitle('نئی کتابیں', onMore: () => onGoTo(0)),
                       ...newBooks.map((Book b) => bookTile(context, b)),
                     ],
                     if (newPosts.isNotEmpty) ...<Widget>[
-                      SectionTitle('نئی تحریریں', onMore: () => onGoTo(2)),
+                      SectionTitle('نئی تحریریں', onMore: () => _push(context, const PostsTab())),
                       ...newPosts.map((Post p) => postTile(context, p)),
                     ],
                   ],
@@ -377,7 +410,7 @@ class _Header extends StatelessWidget {
               const Icon(Icons.wb_sunny, color: kGold, size: 32),
               const SizedBox(width: 10),
               const Text(
-                'المکتبۃ الآفتابیہ',
+                'اسلام 960',
                 style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, height: 1.6),
               ),
             ],
@@ -466,6 +499,46 @@ class _CategoryCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+
+class _LearnGrid extends StatelessWidget {
+  final List<_Tile> items;
+  const _LearnGrid({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(color: const Color(0xFF0F4F55), borderRadius: BorderRadius.circular(18)),
+      child: GridView.count(
+        crossAxisCount: 3,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 1.6,
+        children: items
+            .map((_Tile t) => Material(
+                  color: const Color(0xFF16808A),
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: t.onTap,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Icon(t.icon, color: const Color(0xFFFFE08A), size: 26),
+                        const SizedBox(height: 3),
+                        Text(t.label, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ))
+            .toList(),
       ),
     );
   }

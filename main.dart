@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' hide Text;
 import 'common.dart';
 import 'config.dart';
 import 'i18n.dart';
+import 'prayer.dart';
 import 'settings.dart';
 import 'state.dart';
 import 'ui_home.dart';
@@ -19,6 +20,11 @@ Future<void> main() async {
     await ud.load();
   } catch (e) {
     problems.writeln('userdata: $e');
+  }
+  try {
+    await prayer.load();
+  } catch (e) {
+    problems.writeln('prayer: $e');
   }
   try {
     await lib.init();
@@ -97,7 +103,7 @@ class _MaktabaAppState extends State<MaktabaApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'المکتبۃ الآفتابیہ',
+      title: 'اسلام 960',
       debugShowCheckedModeBanner: false,
       theme: _theme(Brightness.light),
       darkTheme: _theme(Brightness.dark),

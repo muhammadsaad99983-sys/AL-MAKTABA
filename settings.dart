@@ -4,7 +4,7 @@ import 'local.dart';
 /// App-wide look and language choices, saved on the phone.
 class Settings extends ChangeNotifier {
   String lang = 'ur'; // ur | ar | en
-  String theme = 'auto'; // auto | light | dark
+  String theme = 'light'; // auto | light | dark
   double fontScale = 1.0;
 
   bool get rtl => lang != 'en';
@@ -23,7 +23,7 @@ class Settings extends ChangeNotifier {
     if (j is Map) {
       final String l = (j['lang'] ?? 'ur').toString();
       if (l == 'ur' || l == 'ar' || l == 'en') lang = l;
-      final String t = (j['theme'] ?? 'auto').toString();
+      final String t = (j['theme'] ?? 'light').toString();
       if (t == 'auto' || t == 'light' || t == 'dark') theme = t;
       final dynamic f = j['font'];
       if (f is num) fontScale = f.toDouble().clamp(0.8, 1.6).toDouble();

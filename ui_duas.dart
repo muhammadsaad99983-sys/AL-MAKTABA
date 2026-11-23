@@ -53,7 +53,7 @@ String duaAsText(Dua d) {
     b.writeln(d.en);
   }
   b.writeln();
-  b.write('— ${tr('المکتبۃ الآفتابیہ')}');
+  b.write('— ${tr('اسلام 960')}');
   return b.toString();
 }
 
