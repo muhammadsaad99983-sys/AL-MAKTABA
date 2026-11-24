@@ -1,8 +1,11 @@
 // More translations (Key = Urdu text shown in the app). Missing keys show Urdu.
 const Map<String, String> kEnExtra = <String, String>{
-  'آج کی نمازیں': 'Today's prayers',
+  'وقت خود درست کریں (منٹ)': 'Adjust times yourself (minutes)',
+  'اپنی مسجد کے وقت کے مطابق ہر نماز کو آگے/پیچھے کریں': 'Move each prayer earlier/later to match your mosque',
+  'سب وقت اصل حالت پر لائیں': 'Reset all times',
+  'آج کی نمازیں': 'Today\'s prayers',
   'نماز کا حساب': 'Prayer tracker',
-  'آج کی کارکردگی': 'Today's progress',
+  'آج کی کارکردگی': 'Today\'s progress',
   'نمازیں ادا کیں': 'Prayers completed',
   'تمام نمازوں کا تجزیہ دیکھیں': 'View all prayer analytics',
   'نماز منتخب کریں': 'Select a prayer',
@@ -120,6 +123,9 @@ const Map<String, String> kEnExtra = <String, String>{
 };
 
 const Map<String, String> kArExtra = <String, String>{
+  'وقت خود درست کریں (منٹ)': 'اضبط الأوقات بنفسك (دقائق)',
+  'اپنی مسجد کے وقت کے مطابق ہر نماز کو آگے/پیچھے کریں': 'قدّم أو أخّر كل صلاة لتوافق مسجدك',
+  'سب وقت اصل حالت پر لائیں': 'إعادة كل الأوقات',
   'آج کی نمازیں': 'صلوات اليوم',
   'نماز کا حساب': 'متابعة الصلاة',
   'آج کی کارکردگی': 'تقدم اليوم',
