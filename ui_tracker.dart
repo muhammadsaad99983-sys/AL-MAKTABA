@@ -199,7 +199,7 @@ class PrayerTrackerScreen extends StatelessWidget {
               for (final String k in kPrayerKeys) _PrayerRow(k: k, day: now),
               const SizedBox(height: 10),
               if (!prayer.hasPlace)
-                const Text('اوقات دیکھنے کے لیے "نماز کے اوقات" میں شہر منتخب کریں۔',
+                Text('اوقات دیکھنے کے لیے "نماز کے اوقات" میں شہر منتخب کریں۔',
                     style: TextStyle(color: kMuted, fontSize: 13)),
             ],
           );
