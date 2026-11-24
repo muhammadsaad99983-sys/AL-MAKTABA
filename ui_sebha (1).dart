@@ -205,7 +205,7 @@ class _SebhaScreenState extends State<SebhaScreen> {
           appBar: AppBar(
             backgroundColor: const Color(0xFF0A2E28),
             foregroundColor: Colors.white,
-            flexibleSpace: Container(color: const Color(0xFF0A2E28), child: const KaabaScene(opacity: 0.3)),
+            flexibleSpace: Container(color: const Color(0xFF0A2E28), child: const KaabaScene(opacity: 0.95, align: 0.3)),
             title: const Text('تسبیح'),
             actions: <Widget>[
               IconButton(

@@ -8,6 +8,7 @@ import 'ui_tracker.dart';
 import 'models.dart';
 import 'nav.dart';
 import 'state.dart';
+import 'ui_ask.dart';
 import 'ui_books.dart';
 import 'ui_duas.dart';
 import 'ui_feedback.dart';
@@ -185,6 +186,7 @@ class HomeTab extends StatelessWidget {
           _Tile(Icons.history, 'حالیہ مطالعہ', () => _push(context, const ListsScreen(recent: true))),
           _Tile(Icons.download_done, 'ڈاؤنلوڈ شدہ کتابیں', () => _push(context, const DownloadsScreen())),
           _Tile(Icons.notifications, 'اعلانات', () => _push(context, const NewsScreen()), badge: unread),
+          _Tile(Icons.question_answer, 'سوال پوچھیں', () => _push(context, const AskScreen())),
           _Tile(Icons.feedback, 'شکایت / تجویز', () => _push(context, const FeedbackScreen())),
           _Tile(Icons.settings, 'سیٹنگز', () => _push(context, const SettingsScreen())),
         ];
@@ -367,7 +369,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 22),
+      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 104),
       clipBehavior: Clip.antiAlias,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -382,7 +384,7 @@ class _Header extends StatelessWidget {
       ),
       child: Stack(
         children: <Widget>[
-          const Positioned(left: 0, right: 0, bottom: 0, height: 90, child: KaabaScene(opacity: 0.35)),
+          const Positioned(left: 0, right: 0, bottom: 0, height: 96, child: KaabaScene(opacity: 1.0)),
           Column(
         children: <Widget>[
           Row(

@@ -287,6 +287,13 @@ class Api {
     return j is List ? j : <dynamic>[];
   }
 
+  /// Calls a Postgres function (RPC). Anybody may call the public ones.
+  static Future<dynamic> rpc(String fn, Map<String, dynamic> args) async {
+    final _Resp r = await _raw('POST', '/rest/v1/rpc/$fn', body: args);
+    _check(r);
+    return r.json;
+  }
+
   static Future<void> update(String table, String id, Map<String, dynamic> row) async {
     final String token = await _token();
     final _Resp r = await _raw(

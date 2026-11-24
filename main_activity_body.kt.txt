@@ -677,7 +677,7 @@ class MainActivity : FlutterActivity() {
                     haveAccel = true
                     if (!rvActive) computeFromRaw()
                 }
-                Sensor.TYPE_MAGNETIC_FIELD -> {
+                Sensor.TYPE_MAGNETIC_FIELD, Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED -> {
                     for (i in 0..2) magV[i] = magV[i] * 0.8f + e.values[i] * 0.2f
                     haveMag = true
                     if (!rvActive) computeFromRaw()
@@ -686,7 +686,7 @@ class MainActivity : FlutterActivity() {
         }
 
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-            if (sensor != null && sensor.type == Sensor.TYPE_MAGNETIC_FIELD) sensorAccuracy = accuracy
+            if (sensor != null && (sensor.type == Sensor.TYPE_MAGNETIC_FIELD || sensor.type == Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED)) sensorAccuracy = accuracy
         }
     }
 
@@ -727,7 +727,8 @@ class MainActivity : FlutterActivity() {
             rvActive = false
             sourceName = "none"
             val rv = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
-            val mag = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+            var mag = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+            if (mag == null) mag = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED)
             val acc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
             var ok = false
             if (mag != null && acc != null) {

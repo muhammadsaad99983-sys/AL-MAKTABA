@@ -63,7 +63,7 @@ PreferredSizeWidget appBar(String title, {List<Widget>? actions, PreferredSizeWi
     title: Text(title),
     backgroundColor: kBar,
     foregroundColor: Colors.white,
-    flexibleSpace: Container(color: kBar, child: const KaabaScene(opacity: 0.3)),
+    flexibleSpace: Container(color: kBar, child: const KaabaScene(opacity: 0.95, align: 0.3)),
     actions: actions,
     bottom: bottom,
   );

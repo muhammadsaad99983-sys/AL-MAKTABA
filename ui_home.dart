@@ -367,7 +367,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 22),
+      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 104),
       clipBehavior: Clip.antiAlias,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -382,7 +382,7 @@ class _Header extends StatelessWidget {
       ),
       child: Stack(
         children: <Widget>[
-          const Positioned(left: 0, right: 0, bottom: 0, height: 90, child: KaabaScene(opacity: 0.35)),
+          const Positioned(left: 0, right: 0, bottom: 0, height: 96, child: KaabaScene(opacity: 1.0)),
           Column(
         children: <Widget>[
           Row(
