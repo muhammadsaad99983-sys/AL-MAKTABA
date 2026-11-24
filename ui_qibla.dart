@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart' hide Text;
+import 'kaaba.dart';
 import 'package:flutter/services.dart';
 import 'common.dart';
 import 'i18n.dart';
@@ -121,6 +122,11 @@ class _QiblaScreenState extends State<QiblaScreen> {
   bool flat = true;
   bool wasAligned = false;
   int nulls = 0;
+  String source = '';
+  String info = '';
+  double startedLat = 999;
+  double startedLon = 999;
+  int startedAt = 0;
 
   @override
   void initState() {
@@ -138,15 +144,22 @@ class _QiblaScreenState extends State<QiblaScreen> {
 
   void _placeChanged() {
     if (!mounted) return;
-    _startCompass();
+    if ((prayer.lat - startedLat).abs() > 0.01 || (prayer.lon - startedLon).abs() > 0.01) {
+      _startCompass();
+    }
     setState(() {});
   }
 
   Future<void> _startCompass() async {
     timer?.cancel();
+    startedLat = prayer.lat;
+    startedLon = prayer.lon;
+    startedAt = DateTime.now().millisecondsSinceEpoch;
     final bool ok = await Native.compassStart(prayer.lat, prayer.lon);
+    final String inf = ok ? '' : await Native.compassInfo();
     if (!mounted) return;
     setState(() {
+      info = inf;
       sensorOk = ok;
       live = false;
       first = true;
@@ -195,6 +208,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
     wasAligned = al;
     setState(() {
       live = true;
+      source = (r['source'] ?? '').toString();
       accuracy = acc;
       flat = fl;
     });
@@ -222,6 +236,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF073B30),
         foregroundColor: Colors.white,
+        flexibleSpace: Container(color: const Color(0xFF073B30), child: const KaabaScene(opacity: 0.3)),
         title: const Text('قبلہ نما'),
       ),
       body: SafeArea(
@@ -235,10 +250,13 @@ class _QiblaScreenState extends State<QiblaScreen> {
                 children: <Widget>[
                   Text('آپ کا مقام', style: const TextStyle(color: Color(0xFF7A6A3A), fontSize: 13)),
                   Text(
-                    prayer.hasPlace ? prayer.placeName : 'مقام معلوم نہیں (لاہور فرض کیا گیا)',
+                    prayer.hasPlace ? cityLabel(prayer.placeName) : tr('مقام معلوم نہیں (لاہور فرض کیا گیا)'),
                     style: const TextStyle(color: Color(0xFF073B30), fontSize: 22, fontWeight: FontWeight.bold),
                   ),
-                  Text('$latS   $lonS', style: const TextStyle(color: Color(0xFF7A6A3A), fontSize: 12)),
+                  Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: Text('$latS   $lonS', style: const TextStyle(color: Color(0xFF7A6A3A), fontSize: 12)),
+                  ),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 8,
@@ -273,6 +291,24 @@ class _QiblaScreenState extends State<QiblaScreen> {
                 decoration: BoxDecoration(color: const Color(0xFFFFE0B2), borderRadius: BorderRadius.circular(14)),
                 child: const Text(
                   'اس فون میں قطب نما (مقناطیسی سینسر) نہیں ملا یا بند ہے۔ نیچے دی گئی قبلہ کی ڈگری شمال سے گھڑی کی سمت میں ہے؛ کسی اور قطب نما سے شمال دیکھ کر اتنی ڈگری گھومیں۔',
+                  style: TextStyle(height: 1.8, color: Color(0xFF4E342E)),
+                ),
+              ),
+            if (!sensorOk && info.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Text('info: $info', textAlign: TextAlign.center, style: const TextStyle(color: Color(0xCCFFFFFF), fontSize: 12)),
+                ),
+              ),
+            if (sensorOk && !live && DateTime.now().millisecondsSinceEpoch - startedAt > 4000)
+              Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: const Color(0xFFFFE0B2), borderRadius: BorderRadius.circular(14)),
+                child: const Text(
+                  'سینسر سے ڈیٹا نہیں آ رہا۔ فون ہلائیں یا ایپ بند کر کے دوبارہ کھولیں۔ اگر پھر بھی نہ چلے تو فون کا قطب نما (Compass) کسی اور ایپ میں آزما کر دیکھیں۔',
                   style: TextStyle(height: 1.8, color: Color(0xFF4E342E)),
                 ),
               ),
@@ -319,6 +355,8 @@ class _QiblaScreenState extends State<QiblaScreen> {
                 ],
               ),
             ),
+            if (live && source.isNotEmpty)
+              Text('سینسر: $source', textAlign: TextAlign.center, style: const TextStyle(color: Color(0x99FFFFFF), fontSize: 11)),
             const SizedBox(height: 10),
             Text(
               sensorOk && !flat

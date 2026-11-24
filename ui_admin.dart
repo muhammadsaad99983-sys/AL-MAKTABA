@@ -4,6 +4,7 @@ import 'i18n.dart';
 import 'settings.dart';
 import 'api.dart';
 import 'common.dart';
+import 'duas_data.dart';
 import 'models.dart';
 import 'native.dart';
 import 'state.dart';
@@ -347,7 +348,9 @@ class _BookFormState extends State<BookForm> {
 
 class PostForm extends StatefulWidget {
   final Post? post;
-  const PostForm({super.key, this.post});
+  final String initialKind;
+  final String initialSection;
+  const PostForm({super.key, this.post, this.initialKind = 'article', this.initialSection = ''});
 
   @override
   State<PostForm> createState() => _PostFormState();
@@ -361,6 +364,7 @@ class _PostFormState extends State<PostForm> {
   late final TextEditingController body;
   String kind = 'article';
   String categoryId = '';
+  String section = '';
   bool busy = false;
   String error = '';
 
@@ -375,8 +379,9 @@ class _PostFormState extends State<PostForm> {
     source = TextEditingController(text: p?.source ?? '');
     arabic = TextEditingController(text: p?.arabic ?? '');
     body = TextEditingController(text: p?.body ?? '');
-    kind = p?.kind ?? 'article';
+    kind = p?.kind ?? widget.initialKind;
     categoryId = p?.categoryId ?? '';
+    section = p?.section ?? widget.initialSection;
   }
 
   @override
@@ -410,6 +415,7 @@ class _PostFormState extends State<PostForm> {
       'number': number.text.trim(),
       'source': source.text.trim(),
       'category_id': categoryId,
+      'section': (kind == 'dua' || kind == 'zikr') ? section : '',
     };
     try {
       if (editing) {
@@ -451,6 +457,26 @@ class _PostFormState extends State<PostForm> {
                       ))
                   .toList(),
             ),
+            if (kind == 'dua' || kind == 'zikr') ...<Widget>[
+              const SizedBox(height: 14),
+              const Text('دعا کا حصہ', style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                children: <Widget>[
+                  ChoiceChip(
+                    label: const Text('کوئی نہیں (عمومی)'),
+                    selected: section.isEmpty,
+                    onSelected: (bool _) => setState(() => section = ''),
+                  ),
+                  ...kDuaCats.entries.map((MapEntry<String, String> e) => ChoiceChip(
+                        label: Text(e.value),
+                        selected: section == e.key,
+                        onSelected: (bool _) => setState(() => section = e.key),
+                      )),
+                ],
+              ),
+            ],
             const SizedBox(height: 14),
             TextField(
               controller: title,

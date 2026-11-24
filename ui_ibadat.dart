@@ -9,6 +9,7 @@ import 'ui_names.dart';
 import 'ui_prayer.dart';
 import 'ui_qibla.dart';
 import 'ui_sebha.dart';
+import 'ui_tracker.dart';
 
 void pushPage(BuildContext context, Widget page) =>
     Navigator.push(context, MaterialPageRoute<void>(builder: (BuildContext _) => page));
@@ -57,6 +58,8 @@ class IbadatTab extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         children: <Widget>[
           const PrayerCard(),
+          const SizedBox(height: 10),
+          const PrayerProgressChip(),
           const SizedBox(height: 12),
           GridView.count(
             crossAxisCount: 2,

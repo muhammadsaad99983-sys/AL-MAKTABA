@@ -246,6 +246,7 @@ class Lib extends ChangeNotifier {
         'body': f['body'],
         'number': f['number'],
         'source': f['source'],
+        'section': f['section'] ?? '',
         'category_id': (f['category_id'] ?? '').isEmpty ? null : f['category_id'],
       };
 

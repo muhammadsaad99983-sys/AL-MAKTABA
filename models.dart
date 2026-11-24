@@ -122,6 +122,7 @@ class Post {
   String number;
   String source;
   String categoryId;
+  String section; // dua section (morning, evening ...) for kind dua/zikr
   final String createdAt;
 
   Post({
@@ -133,6 +134,7 @@ class Post {
     this.number = '',
     this.source = '',
     this.categoryId = '',
+    this.section = '',
     this.createdAt = '',
   });
 
@@ -145,6 +147,7 @@ class Post {
         'number': number,
         'source': source,
         'category_id': categoryId,
+        'section': section,
         'created_at': createdAt,
       };
 
@@ -157,6 +160,7 @@ class Post {
         number: _s(j, 'number'),
         source: _s(j, 'source'),
         categoryId: _s(j, 'category_id'),
+        section: _s(j, 'section'),
         createdAt: _s(j, 'created_at'),
       );
 }

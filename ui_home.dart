@@ -3,6 +3,8 @@ import 'i18n.dart';
 import 'settings.dart';
 import 'ads.dart';
 import 'common.dart';
+import 'kaaba.dart';
+import 'ui_tracker.dart';
 import 'models.dart';
 import 'nav.dart';
 import 'state.dart';
@@ -231,6 +233,8 @@ class HomeTab extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     const PrayerCard(),
+                    const SizedBox(height: 10),
+                    const PrayerProgressChip(),
                     if (resume != null)
                       Builder(builder: (BuildContext context) {
                         final Book rb = resume!;
@@ -364,6 +368,7 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 22),
+      clipBehavior: Clip.antiAlias,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -375,7 +380,10 @@ class _Header extends StatelessWidget {
           bottomRight: Radius.circular(30),
         ),
       ),
-      child: Column(
+      child: Stack(
+        children: <Widget>[
+          const Positioned(left: 0, right: 0, bottom: 0, height: 90, child: KaabaScene(opacity: 0.35)),
+          Column(
         children: <Widget>[
           Row(
             children: <Widget>[
@@ -446,6 +454,8 @@ class _Header extends StatelessWidget {
               ),
             ),
           ),
+        ],
+      ),
         ],
       ),
     );
