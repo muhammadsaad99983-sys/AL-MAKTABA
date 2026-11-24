@@ -8,6 +8,7 @@ import 'ui_tracker.dart';
 import 'models.dart';
 import 'nav.dart';
 import 'state.dart';
+import 'ui_ask.dart';
 import 'ui_books.dart';
 import 'ui_duas.dart';
 import 'ui_feedback.dart';
@@ -185,6 +186,7 @@ class HomeTab extends StatelessWidget {
           _Tile(Icons.history, 'حالیہ مطالعہ', () => _push(context, const ListsScreen(recent: true))),
           _Tile(Icons.download_done, 'ڈاؤنلوڈ شدہ کتابیں', () => _push(context, const DownloadsScreen())),
           _Tile(Icons.notifications, 'اعلانات', () => _push(context, const NewsScreen()), badge: unread),
+          _Tile(Icons.question_answer, 'سوال پوچھیں', () => _push(context, const AskScreen())),
           _Tile(Icons.feedback, 'شکایت / تجویز', () => _push(context, const FeedbackScreen())),
           _Tile(Icons.settings, 'سیٹنگز', () => _push(context, const SettingsScreen())),
         ];
@@ -302,8 +304,12 @@ class _HomeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool dark = Theme.of(context).brightness == Brightness.dark;
+    final Color boxColor = dark ? const Color(0xFF4A3D0C) : const Color(0xFFFFEB8A);
+    final Color circleColor = dark ? const Color(0xFFE0A800) : const Color(0xFFFFC933);
+    final Color iconColor = dark ? const Color(0xFF2B2200) : const Color(0xFF5A3B00);
     return Material(
-      color: kCardBg,
+      color: boxColor,
       borderRadius: BorderRadius.circular(16),
       elevation: 0.6,
       child: InkWell(
@@ -323,11 +329,11 @@ class _HomeTile extends StatelessWidget {
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: kLight,
+                        color: circleColor,
                         shape: BoxShape.circle,
-                        border: Border.all(color: kGold.withAlpha(120)),
+                        border: Border.all(color: const Color(0xFFB8860B), width: 1.4),
                       ),
-                      child: Icon(tile.icon, color: kGreen, size: 26),
+                      child: Icon(tile.icon, color: iconColor, size: 26),
                     ),
                     if (tile.badge > 0)
                       PositionedDirectional(
