@@ -10,6 +10,8 @@ import 'ui_prayer.dart';
 import 'ui_qibla.dart';
 import 'ui_sebha.dart';
 import 'ui_tracker.dart';
+import 'ui_zakat.dart';
+import 'ui_salah.dart';
 
 void pushPage(BuildContext context, Widget page) =>
     Navigator.push(context, MaterialPageRoute<void>(builder: (BuildContext _) => page));
@@ -48,6 +50,8 @@ class IbadatTab extends StatelessWidget {
       _Big(Icons.blur_circular, 'تسبیح', const Color(0xFF4A3F7A), () => pushPage(context, const SebhaScreen())),
       _Big(Icons.volunteer_activism, 'دعائیں', const Color(0xFF8D5A8F), () => pushPage(context, const DuasScreen())),
       _Big(Icons.auto_awesome, 'اسمائے حسنیٰ', const Color(0xFFB5483A), () => pushPage(context, const NamesScreen())),
+      _Big(Icons.menu_book, 'نماز اور وضو کا طریقہ', const Color(0xFF2F6F8F), () => pushPage(context, const SalahGuideScreen())),
+      _Big(Icons.calculate, 'زکوٰۃ کیلکولیٹر', const Color(0xFF6B4E9B), () => pushPage(context, const ZakatScreen())),
       _Big(Icons.calendar_month, 'اسلامی کیلنڈر', const Color(0xFF3A86C8), () => pushPage(context, const CalendarScreen())),
       _Big(Icons.wb_sunny, 'صبح کے اذکار', const Color(0xFFE08A1E), () => pushPage(context, const DuaCategoryScreen(cat: 'morning'))),
       _Big(Icons.nights_stay, 'شام کے اذکار', const Color(0xFF1E2A55), () => pushPage(context, const DuaCategoryScreen(cat: 'evening'))),
