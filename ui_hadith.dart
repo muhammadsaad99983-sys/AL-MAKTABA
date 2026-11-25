@@ -233,7 +233,7 @@ class HadithBookScreen extends StatelessWidget {
               ? FloatingActionButton.extended(
                   onPressed: () => Navigator.push(
                     context,
-                    MaterialPageRoute<void>(builder: (BuildContext _) => const PostForm()),
+                    MaterialPageRoute<void>(builder: (BuildContext _) => PostForm(initialKind: 'hadith', initialSource: book.ur)),
                   ),
                   icon: const Icon(Icons.edit_note),
                   label: const Text('نئی حدیث'),

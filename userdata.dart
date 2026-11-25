@@ -44,6 +44,7 @@ class UserData extends ChangeNotifier {
   final List<TasbeehItem> custom = <TasbeehItem>[];
   final Set<String> seenNews = <String>{};
   final Map<String, int> sebhaTargets = <String, int>{};
+  final Map<String, List<String>> prayed = <String, List<String>>{};
   bool sebhaSeq = false;
   String sebhaLast = '';
   Timer? _timer;
@@ -68,6 +69,12 @@ class UserData extends ChangeNotifier {
     recentBooks.addAll(_strs(j['recentBooks']));
     recentPosts.addAll(_strs(j['recentPosts']));
     seenNews.addAll(_strs(j['seenNews']));
+    final dynamic pr = j['prayed'];
+    if (pr is Map) {
+      pr.forEach((dynamic k, dynamic v) {
+        prayed[k.toString()] = _strs(v);
+      });
+    }
     sebhaSeq = j['sebhaSeq'] == true;
     sebhaLast = (j['sebhaLast'] ?? '').toString();
     final dynamic st = j['sebhaTargets'];
@@ -110,6 +117,25 @@ class UserData extends ChangeNotifier {
     }
   }
 
+  String _dk(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  bool isPrayed(DateTime d, String key) => (prayed[_dk(d)] ?? <String>[]).contains(key);
+
+  int prayedCount(DateTime d) => (prayed[_dk(d)] ?? <String>[]).length;
+
+  void setPrayed(DateTime d, String key, bool v) {
+    final List<String> l = List<String>.from(prayed[_dk(d)] ?? <String>[]);
+    l.remove(key);
+    if (v) l.add(key);
+    if (l.isEmpty) {
+      prayed.remove(_dk(d));
+    } else {
+      prayed[_dk(d)] = l;
+    }
+    _save(now: true);
+  }
+
   void _save({bool now = false}) {
     notifyListeners();
     _timer?.cancel();
@@ -121,6 +147,7 @@ class UserData extends ChangeNotifier {
         'recentPosts': recentPosts,
         'seenNews': seenNews.toList(),
         'sebhaTargets': sebhaTargets,
+        'prayed': prayed,
         'sebhaSeq': sebhaSeq,
         'sebhaLast': sebhaLast,
         'counts': counts,

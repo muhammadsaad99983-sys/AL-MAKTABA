@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart' hide Text;
+import 'kaaba.dart';
 import 'package:flutter/services.dart';
 import 'common.dart';
 import 'i18n.dart';
@@ -204,6 +205,7 @@ class _SebhaScreenState extends State<SebhaScreen> {
           appBar: AppBar(
             backgroundColor: const Color(0xFF0A2E28),
             foregroundColor: Colors.white,
+            flexibleSpace: Container(color: const Color(0xFF0A2E28), child: const KaabaScene(opacity: 0.95, align: 0.3)),
             title: const Text('تسبیح'),
             actions: <Widget>[
               IconButton(

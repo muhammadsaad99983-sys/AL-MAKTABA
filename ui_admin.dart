@@ -350,7 +350,8 @@ class PostForm extends StatefulWidget {
   final Post? post;
   final String initialKind;
   final String initialSection;
-  const PostForm({super.key, this.post, this.initialKind = 'article', this.initialSection = ''});
+  final String initialSource;
+  const PostForm({super.key, this.post, this.initialKind = 'article', this.initialSection = '', this.initialSource = ''});
 
   @override
   State<PostForm> createState() => _PostFormState();
@@ -376,7 +377,7 @@ class _PostFormState extends State<PostForm> {
     final Post? p = widget.post;
     title = TextEditingController(text: p?.title ?? '');
     number = TextEditingController(text: p?.number ?? '');
-    source = TextEditingController(text: p?.source ?? '');
+    source = TextEditingController(text: p?.source ?? widget.initialSource);
     arabic = TextEditingController(text: p?.arabic ?? '');
     body = TextEditingController(text: p?.body ?? '');
     kind = p?.kind ?? widget.initialKind;
