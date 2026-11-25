@@ -128,15 +128,6 @@ class Native {
     }
   }
 
-  static Future<String> compassInfo() async {
-    try {
-      final String? r = await _ch.invokeMethod<String>('compassInfo');
-      return r ?? '';
-    } catch (e) {
-      return 'old-build';
-    }
-  }
-
   static Future<void> compassStop() async {
     try {
       await _ch.invokeMethod<bool>('compassStop');

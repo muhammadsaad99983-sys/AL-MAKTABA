@@ -155,7 +155,6 @@ class MainActivity : FlutterActivity() {
                 result.success(true)
             }
             "compassRead" -> result.success(compassRead())
-            "compassInfo" -> result.success(startInfo)
             else -> result.notImplemented()
         }
     }
@@ -646,9 +645,7 @@ class MainActivity : FlutterActivity() {
 
     private var sensorMgr: SensorManager? = null
     private var compassOn = false
-    private var rvActive = false
-    private var startInfo = "not started"
-    private var sourceName = "none"
+    private var usingRotationVector = false
     private val rot = FloatArray(9)
     private val accelV = FloatArray(3)
     private val magV = FloatArray(3)
@@ -663,39 +660,34 @@ class MainActivity : FlutterActivity() {
         override fun onSensorChanged(e: SensorEvent) {
             when (e.sensor.type) {
                 Sensor.TYPE_ROTATION_VECTOR -> {
-                    try {
-                        SensorManager.getRotationMatrixFromVector(rot, e.values)
-                        rvActive = true
-                        sourceName = "rv"
-                        computeHeading()
-                    } catch (ex: Exception) {
-                        rvActive = false
-                    }
+                    SensorManager.getRotationMatrixFromVector(rot, e.values)
+                    computeHeading()
                 }
                 Sensor.TYPE_ACCELEROMETER -> {
-                    for (i in 0..2) accelV[i] = accelV[i] * 0.8f + e.values[i] * 0.2f
-                    haveAccel = true
-                    if (!rvActive) computeFromRaw()
+                    if (!usingRotationVector) {
+                        for (i in 0..2) accelV[i] = accelV[i] * 0.8f + e.values[i] * 0.2f
+                        haveAccel = true
+                        computeFromRaw()
+                    }
                 }
-                Sensor.TYPE_MAGNETIC_FIELD, Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED -> {
-                    for (i in 0..2) magV[i] = magV[i] * 0.8f + e.values[i] * 0.2f
-                    haveMag = true
-                    if (!rvActive) computeFromRaw()
+                Sensor.TYPE_MAGNETIC_FIELD -> {
+                    if (!usingRotationVector) {
+                        for (i in 0..2) magV[i] = magV[i] * 0.8f + e.values[i] * 0.2f
+                        haveMag = true
+                        computeFromRaw()
+                    }
                 }
             }
         }
 
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-            if (sensor != null && (sensor.type == Sensor.TYPE_MAGNETIC_FIELD || sensor.type == Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED)) sensorAccuracy = accuracy
+            if (sensor != null && sensor.type == Sensor.TYPE_MAGNETIC_FIELD) sensorAccuracy = accuracy
         }
     }
 
     private fun computeFromRaw() {
         if (!haveAccel || !haveMag) return
-        if (SensorManager.getRotationMatrix(rot, null, accelV, magV)) {
-            sourceName = "raw"
-            computeHeading()
-        }
+        if (SensorManager.getRotationMatrix(rot, null, accelV, magV)) computeHeading()
     }
 
     private fun computeHeading() {
@@ -724,28 +716,22 @@ class MainActivity : FlutterActivity() {
             haveAccel = false
             haveMag = false
             sensorAccuracy = 0
-            rvActive = false
-            sourceName = "none"
             val rv = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
-            var mag = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
-            if (mag == null) mag = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED)
+            val mag = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
             val acc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
             var ok = false
-            if (mag != null && acc != null) {
-                // raw sensors always (works on every phone); rotation vector is used when it really delivers data
-                val a1 = sm.registerListener(sensorListener, acc, SensorManager.SENSOR_DELAY_GAME)
-                val a2 = sm.registerListener(sensorListener, mag, SensorManager.SENSOR_DELAY_GAME)
-                ok = a1 && a2
+            if (rv != null && mag != null) {
+                usingRotationVector = true
+                ok = sm.registerListener(sensorListener, rv, SensorManager.SENSOR_DELAY_GAME)
+                sm.registerListener(sensorListener, mag, SensorManager.SENSOR_DELAY_UI)
+            } else if (mag != null && acc != null) {
+                usingRotationVector = false
+                ok = sm.registerListener(sensorListener, acc, SensorManager.SENSOR_DELAY_GAME)
+                sm.registerListener(sensorListener, mag, SensorManager.SENSOR_DELAY_GAME)
             }
-            if (rv != null) {
-                val a3 = sm.registerListener(sensorListener, rv, SensorManager.SENSOR_DELAY_GAME)
-                ok = ok || a3
-            }
-            startInfo = "acc=" + (acc != null) + " mag=" + (mag != null) + " rv=" + (rv != null) + " ok=" + ok
             compassOn = ok
             return ok
         } catch (e: Exception) {
-            startInfo = "error " + e.toString()
             return false
         }
     }
@@ -764,7 +750,6 @@ class MainActivity : FlutterActivity() {
         m["heading"] = headingDeg
         m["accuracy"] = sensorAccuracy
         m["flat"] = flatMode
-        m["source"] = sourceName
         return m
     }
 

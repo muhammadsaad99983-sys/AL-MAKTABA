@@ -9,80 +9,29 @@ Future<void> pickCity(BuildContext context) async {
   final Object? r = await showModalBottomSheet<Object>(
     context: context,
     isScrollControlled: true,
-    builder: (BuildContext ctx) {
-      String q = '';
-      return StatefulBuilder(
-        builder: (BuildContext ctx, StateSetter set) {
-          final String qq = q.trim().toLowerCase();
-          final List<Place> list = kCities
-              .where((Place p) => qq.isEmpty || p.name.contains(qq) || p.ar.contains(qq) || p.en.toLowerCase().contains(qq))
-              .toList();
-          return Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
-            child: SizedBox(
-              height: MediaQuery.of(ctx).size.height * 0.8,
-              child: Column(
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-                    child: TextField(
-                      onChanged: (String v) => set(() => q = v),
-                      decoration: InputDecoration(
-                        hintText: tr('شہر کا نام تلاش کریں'),
-                        prefixIcon: const Icon(Icons.search),
-                        border: const OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView(
-                      children: <Widget>[
-                        ListTile(
-                          leading: Icon(Icons.my_location, color: kGreen),
-                          title: const Text('GPS سے مقام لیں'),
-                          onTap: () => Navigator.pop(ctx, 'gps'),
-                        ),
-                        ListTile(
-                          leading: Icon(Icons.edit_location_alt, color: kGreen),
-                          title: const Text('اپنے شہر کے نمبر خود لکھیں'),
-                          subtitle: const Text('اگر آپ کا شہر فہرست میں نہ ہو'),
-                          onTap: () => Navigator.pop(ctx, 'custom'),
-                        ),
-                        const Divider(height: 1),
-                        ...list.map((Place p) => ListTile(
-                              leading: const Icon(Icons.location_on_outlined),
-                              title: Text(cityLabel(p.name)),
-                              subtitle: Text(settings.lang == 'ur' ? p.en : p.name),
-                              onTap: () => Navigator.pop(ctx, p),
-                            )),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    },
+    builder: (BuildContext ctx) => SizedBox(
+      height: MediaQuery.of(ctx).size.height * 0.75,
+      child: ListView(
+        children: <Widget>[
+          ListTile(
+            leading: Icon(Icons.my_location, color: kGreen),
+            title: const Text('GPS سے مقام لیں'),
+            onTap: () => Navigator.pop(ctx, 'gps'),
+          ),
+          const Divider(height: 1),
+          ...kCities.map((Place p) => ListTile(
+                leading: const Icon(Icons.location_on_outlined),
+                title: Text(settings.lang == 'en' ? p.en : p.name),
+                subtitle: Text(settings.lang == 'en' ? p.name : p.en),
+                onTap: () => Navigator.pop(ctx, p),
+              )),
+        ],
+      ),
+    ),
   );
   if (r == 'gps') {
     final String m = await prayer.useGps();
     if (m.isNotEmpty && context.mounted) snack(context, m);
-  } else if (r == 'custom') {
-    if (!context.mounted) return;
-    final String? name = await promptText(context, 'شہر کا نام');
-    if (name == null || name.trim().isEmpty || !context.mounted) return;
-    final String? la = await promptText(context, 'عرض بلد (Latitude) مثلاً 34.5650');
-    if (la == null || !context.mounted) return;
-    final String? lo = await promptText(context, 'طول بلد (Longitude) مثلاً 71.9300');
-    final double? la2 = double.tryParse((la).trim());
-    final double? lo2 = double.tryParse((lo ?? '').trim());
-    if (la2 == null || lo2 == null || la2.abs() > 90 || lo2.abs() > 180) {
-      if (context.mounted) snack(context, 'نمبر درست نہیں');
-      return;
-    }
-    prayer.setCustom(name.trim(), la2, lo2);
   } else if (r is Place) {
     prayer.setCity(r);
   }
@@ -210,7 +159,7 @@ class _PrayerCardState extends State<PrayerCard> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        prayer.hasPlace ? cityLabel(prayer.placeName) : tr('مقام منتخب نہیں (لاہور)'),
+                        prayer.hasPlace ? prayer.placeName : 'مقام منتخب نہیں (لاہور)',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
@@ -386,7 +335,7 @@ class PrayerScreen extends StatelessWidget {
                       leading: Icon(Icons.location_city, color: kGreen),
                       title: const Text('مقام'),
                       subtitle: Text(prayer.hasPlace
-                          ? '${cityLabel(prayer.placeName)}${prayer.fromGps ? ' (GPS)' : ''}'
+                          ? '${prayer.placeName}${prayer.fromGps ? ' (GPS)' : ''}'
                           : 'ابھی منتخب نہیں'),
                       trailing: Icon(kChevron),
                       onTap: () => pickCity(context),
@@ -443,42 +392,6 @@ class PrayerScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                    ),
-                    const Divider(height: 1),
-                    const ListTile(
-                      leading: Icon(Icons.tune, color: Color(0xFF0B5D4B)),
-                      title: Text('وقت خود درست کریں (منٹ)'),
-                      subtitle: Text('اپنی مسجد کے وقت کے مطابق ہر نماز کو آگے/پیچھے کریں'),
-                    ),
-                    for (final _Slot s in _slots)
-                      ListTile(
-                        dense: true,
-                        leading: Icon(s.icon, color: kGreen),
-                        title: Text(s.label),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            IconButton(
-                              icon: const Icon(Icons.remove_circle_outline),
-                              onPressed: () => prayer.setTune(s.key, prayer.tuneOf(s.key) - 1),
-                            ),
-                            SizedBox(
-                              width: 36,
-                              child: Directionality(
-                                textDirection: TextDirection.ltr,
-                                child: Text('${prayer.tuneOf(s.key) > 0 ? '+' : ''}${prayer.tuneOf(s.key)}', textAlign: TextAlign.center),
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.add_circle_outline),
-                              onPressed: () => prayer.setTune(s.key, prayer.tuneOf(s.key) + 1),
-                            ),
-                          ],
-                        ),
-                      ),
-                    TextButton(
-                      onPressed: () => prayer.resetTune(),
-                      child: const Text('سب وقت اصل حالت پر لائیں'),
                     ),
                   ],
                 ),

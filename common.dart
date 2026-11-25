@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart' hide Text;
 import 'i18n.dart';
-import 'kaaba.dart';
 import 'settings.dart';
 import 'models.dart';
+import 'settings.dart';
 import 'state.dart';
 
 const Color kGold = Color(0xFFC8962A);
@@ -63,7 +63,6 @@ PreferredSizeWidget appBar(String title, {List<Widget>? actions, PreferredSizeWi
     title: Text(title),
     backgroundColor: kBar,
     foregroundColor: Colors.white,
-    flexibleSpace: Container(color: kBar, child: const KaabaScene(opacity: 0.95, align: 0.3)),
     actions: actions,
     bottom: bottom,
   );

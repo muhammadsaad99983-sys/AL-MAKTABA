@@ -8,7 +8,6 @@ import 'native.dart';
 import 'state.dart';
 import 'texts.dart';
 import 'ui_admin.dart';
-import 'ui_ask.dart';
 import 'ui_feedback.dart';
 import 'ui_import.dart';
 import 'ui_lists.dart';
@@ -61,12 +60,6 @@ class MoreTab extends StatelessWidget {
                 title: 'شکایت / تجویز',
                 subtitle: 'ہمیں اپنی رائے بھیجیں',
                 onTap: () => _push(context, const FeedbackScreen()),
-              ),
-              _Tile(
-                icon: Icons.question_answer_outlined,
-                title: Api.isAdmin ? 'لوگوں کے سوالات' : 'سوال پوچھیں',
-                subtitle: 'جواب صرف آپ کو نظر آئے گا',
-                onTap: () => _push(context, const AskScreen()),
               ),
               _Tile(
                 icon: Icons.settings_outlined,

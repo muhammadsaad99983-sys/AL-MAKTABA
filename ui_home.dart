@@ -193,16 +193,17 @@ class HomeTab extends StatelessWidget {
         final double w = MediaQuery.of(context).size.width;
         final int cols = w > 700 ? 5 : (w > 480 ? 4 : 3);
 
-        Widget grid(List<_Tile> tiles) => GridView.count(
+        Widget grid(List<_Tile> tiles, {int offset = 0}) => GridView.count(
               crossAxisCount: cols,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               mainAxisSpacing: 10,
               crossAxisSpacing: 10,
               childAspectRatio: 0.92,
-              children: tiles
-                  .map((_Tile t) => _HomeTile(tile: t, soon: soonLabels.contains(t.label)))
-                  .toList(),
+              children: <Widget>[
+                for (int i = 0; i < tiles.length; i++)
+                  _HomeTile(tile: tiles[i], soon: soonLabels.contains(tiles[i].label), index: offset + i),
+              ],
             );
 
         return RefreshIndicator(
@@ -256,7 +257,7 @@ class HomeTab extends StatelessWidget {
                     const SectionTitle('اسلامی خزانہ'),
                     grid(main),
                     const SectionTitle('میرا مکتبہ'),
-                    grid(mine),
+                    grid(mine, offset: 9),
                     if (nothing && lib.loading)
                       const Padding(
                         padding: EdgeInsets.all(40),
@@ -297,17 +298,55 @@ class HomeTab extends StatelessWidget {
   }
 }
 
+/// Colourful picture for each tile (standard emoji, drawn by the phone).
+const Map<String, String> _kEmoji = <String, String>{
+  'اسلامی کتب خانہ': '\u{1F4DA}',
+  'کتبِ احادیث': '\u{1F4D6}',
+  'دعائیں': '\u{1F64F}',
+  'قبلہ نما': '\u{1F9ED}',
+  'اسمائے حسنیٰ': '\u2728',
+  'اسلامی کیلنڈر': '\u{1F4C5}',
+  'فتاویٰ': '\u2696\uFE0F',
+  'اسلامی مضامین': '\u{1F4DD}',
+  'اسلامی تاریخ': '\u{1F4DC}',
+  'پسندیدہ': '\u2764\uFE0F',
+  'حالیہ مطالعہ': '\u{1F558}',
+  'ڈاؤنلوڈ شدہ کتابیں': '\u{1F4E5}',
+  'اعلانات': '\u{1F4E2}',
+  'سوال پوچھیں': '\u2753',
+  'شکایت / تجویز': '\u{1F4AC}',
+  'سیٹنگز': '\u2699\uFE0F',
+};
+
+/// Every tile gets its own colour: [box, circle, icon].
+const List<List<Color>> _kTilePalette = <List<Color>>[
+  <Color>[Color(0xFFFFEB8A), Color(0xFFFFC933), Color(0xFF5A3B00)],
+  <Color>[Color(0xFFFFD1DC), Color(0xFFF06292), Color(0xFF5C0A2A)],
+  <Color>[Color(0xFFBBDEFB), Color(0xFF42A5F5), Color(0xFF0D2F57)],
+  <Color>[Color(0xFFC8F0D4), Color(0xFF3DBE72), Color(0xFF0A3D1F)],
+  <Color>[Color(0xFFFFD9B0), Color(0xFFFF9333), Color(0xFF5A2A00)],
+  <Color>[Color(0xFFE1D4FF), Color(0xFF9575CD), Color(0xFF2B1458)],
+  <Color>[Color(0xFFB8F0EA), Color(0xFF26B5A8), Color(0xFF04403B)],
+  <Color>[Color(0xFFFFC9C9), Color(0xFFEF5350), Color(0xFF5C0A0A)],
+  <Color>[Color(0xFFE6F5A8), Color(0xFF9CCC30), Color(0xFF2F4200)],
+  <Color>[Color(0xFFEBD3BE), Color(0xFFA67C52), Color(0xFF3A2410)],
+  <Color>[Color(0xFFCFE0FF), Color(0xFF5C7CFA), Color(0xFF14226B)],
+  <Color>[Color(0xFFF8C8F0), Color(0xFFD45CC9), Color(0xFF4D0A48)],
+];
+
 class _HomeTile extends StatelessWidget {
   final _Tile tile;
   final bool soon;
-  const _HomeTile({required this.tile, required this.soon});
+  final int index;
+  const _HomeTile({required this.tile, required this.soon, required this.index});
 
   @override
   Widget build(BuildContext context) {
     final bool dark = Theme.of(context).brightness == Brightness.dark;
-    final Color boxColor = dark ? const Color(0xFF4A3D0C) : const Color(0xFFFFEB8A);
-    final Color circleColor = dark ? const Color(0xFFE0A800) : const Color(0xFFFFC933);
-    final Color iconColor = dark ? const Color(0xFF2B2200) : const Color(0xFF5A3B00);
+    final List<Color> pal = _kTilePalette[index % _kTilePalette.length];
+    final Color boxColor = dark ? Color.lerp(pal[1], Colors.black, 0.68)! : pal[0];
+    final Color circleColor = pal[1];
+    final Color iconColor = dark ? Colors.white : pal[2];
     return Material(
       color: boxColor,
       borderRadius: BorderRadius.circular(16),
@@ -326,14 +365,16 @@ class _HomeTile extends StatelessWidget {
                   clipBehavior: Clip.none,
                   children: <Widget>[
                     Container(
-                      width: 50,
-                      height: 50,
+                      width: 54,
+                      height: 54,
                       decoration: BoxDecoration(
-                        color: circleColor,
+                        color: _kEmoji.containsKey(tile.label) ? Colors.white.withAlpha(dark ? 235 : 215) : circleColor,
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFB8860B), width: 1.4),
+                        border: Border.all(color: circleColor, width: 2),
                       ),
-                      child: Icon(tile.icon, color: iconColor, size: 26),
+                      child: _kEmoji.containsKey(tile.label)
+                          ? Center(child: Text(_kEmoji[tile.label]!, style: const TextStyle(fontSize: 28, height: 1.2)))
+                          : Icon(tile.icon, color: iconColor, size: 26),
                     ),
                     if (tile.badge > 0)
                       PositionedDirectional(

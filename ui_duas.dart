@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
-import 'api.dart';
 import 'common.dart';
-import 'ui_admin.dart';
 import 'duas_data.dart';
 import 'i18n.dart';
 import 'models.dart';
@@ -81,25 +79,14 @@ class DuasScreen extends StatelessWidget {
       animation: lib,
       builder: (BuildContext context, Widget? _) {
         final List<Post> mine =
-            lib.posts.where((Post p) => (p.kind == 'dua' || p.kind == 'zikr') && p.section.isEmpty).toList();
+            lib.posts.where((Post p) => p.kind == 'dua' || p.kind == 'zikr').toList();
         return Scaffold(
           appBar: appBar('دعائیں'),
-          floatingActionButton: Api.isAdmin
-              ? FloatingActionButton.extended(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(builder: (BuildContext _) => const PostForm(initialKind: 'dua')),
-                  ),
-                  icon: const Icon(Icons.add),
-                  label: const Text('نئی دعا'),
-                )
-              : null,
           body: ListView(
             padding: const EdgeInsets.all(12),
             children: <Widget>[
               ...kDuaCats.entries.map((MapEntry<String, String> e) {
-                final int n = kDuas.where((Dua d) => d.cat == e.key).length +
-                    lib.posts.where((Post p) => (p.kind == 'dua' || p.kind == 'zikr') && p.section == e.key).length;
+                final int n = kDuas.where((Dua d) => d.cat == e.key).length;
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   child: ListTile(
@@ -136,63 +123,42 @@ class DuaCategoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Dua> items = kDuas.where((Dua d) => d.cat == cat).toList();
-    return AnimatedBuilder(
-      animation: lib,
-      builder: (BuildContext context, Widget? _) {
-        final List<Post> mine =
-            lib.posts.where((Post p) => (p.kind == 'dua' || p.kind == 'zikr') && p.section == cat).toList();
-        return Scaffold(
-          appBar: appBar(kDuaCats[cat] ?? 'دعائیں'),
-          floatingActionButton: Api.isAdmin
-              ? FloatingActionButton.extended(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (BuildContext _) => PostForm(initialKind: 'dua', initialSection: cat),
+    return Scaffold(
+      appBar: appBar(kDuaCats[cat] ?? 'دعائیں'),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: items.length,
+        itemBuilder: (BuildContext context, int i) {
+          final Dua d = items[i];
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(builder: (BuildContext _) => DuaDetailScreen(dua: d)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(duaTitle(d), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, height: 1.5)),
+                    const SizedBox(height: 6),
+                    Text(
+                      d.arabic,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.start,
+                      style: TextStyle(color: kMuted, fontSize: 16, height: 1.9),
                     ),
-                  ),
-                  icon: const Icon(Icons.add),
-                  label: const Text('نئی دعا'),
-                )
-              : null,
-          body: ListView(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 90),
-            children: <Widget>[
-              ...items.map((Dua d) => Card(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(builder: (BuildContext _) => DuaDetailScreen(dua: d)),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(duaTitle(d), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, height: 1.5)),
-                            const SizedBox(height: 6),
-                            Text(
-                              d.arabic,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.start,
-                              style: TextStyle(color: kMuted, fontSize: 16, height: 1.9),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  )),
-              if (mine.isNotEmpty) ...<Widget>[
-                const SectionTitle('مکتبے کی طرف سے شامل کردہ'),
-                ...mine.map((Post p) => postTile(context, p)),
-              ],
-            ],
-          ),
-        );
-      },
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
